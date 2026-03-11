@@ -1,0 +1,101 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/user_stats.dart';
+import '../models/debt_entry.dart';
+import '../services/mock_database_service.dart';
+
+// The hardcoded uid used until real Firebase Auth is wired in.
+const String kMockUid = 'mock_uid';
+
+final _db = MockDatabaseService();
+
+final userStatsProvider = StateNotifierProvider<UserStatsNotifier, UserStats>((
+  ref,
+) {
+  final notifier = UserStatsNotifier();
+  notifier.loadFromDb();
+  return notifier;
+});
+
+class UserStatsNotifier extends StateNotifier<UserStats> {
+  UserStatsNotifier() : super(const UserStats());
+
+  Future<void> loadFromDb() async {
+    final map = await _db.getUserStats(kMockUid);
+    if (map != null) {
+      state = UserStats.fromMap(map);
+    }
+  }
+
+  Future<void> _persist() async {
+    await _db.updateUserStats(kMockUid, state.toMap());
+  }
+
+  Future<void> setClass(CharacterClass cls) async {
+    state = state.copyWith(characterClass: cls);
+    await _persist();
+  }
+
+  Future<void> setSavings(double value) async {
+    state = state.copyWith(savings: value.clamp(0, double.infinity));
+    await _persist();
+  }
+
+  Future<void> setChecking(double value) async {
+    state = state.copyWith(checking: value.clamp(0, double.infinity));
+    await _persist();
+  }
+
+  Future<void> addDebt(DebtEntry entry) async {
+    state = state.copyWith(debts: [...state.debts, entry]);
+    await _persist();
+  }
+
+  Future<void> updateDebt(DebtEntry updated) async {
+    state = state.copyWith(
+      debts: state.debts.map((d) => d.id == updated.id ? updated : d).toList(),
+    );
+    await _persist();
+  }
+
+  Future<void> removeDebt(String id) async {
+    state = state.copyWith(
+      debts: state.debts.where((d) => d.id != id).toList(),
+    );
+    await _persist();
+  }
+
+  Future<void> setHasRothIra(bool value) async {
+    state = state.copyWith(hasRothIra: value);
+    await _persist();
+  }
+
+  Future<void> setHas401k(bool value) async {
+    state = state.copyWith(has401k: value);
+    await _persist();
+  }
+
+  Future<void> setHasBrokerage(bool value) async {
+    state = state.copyWith(hasBrokerage: value);
+    await _persist();
+  }
+
+  Future<void> setAnnualSalary(double value) async {
+    state = state.copyWith(annualSalary: value.clamp(0, double.infinity));
+    await _persist();
+  }
+
+  Future<void> setCreditScoreStatus(String? value) async {
+    state = state.copyWith(creditScoreStatus: value);
+    await _persist();
+  }
+
+  Future<void> mint() async {
+    state = state.copyWith(hasMinted: true);
+    await _persist();
+  }
+
+  Future<void> reset() async {
+    state = const UserStats();
+    await _persist();
+  }
+}
