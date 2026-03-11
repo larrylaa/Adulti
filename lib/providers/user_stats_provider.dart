@@ -30,6 +30,16 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
     await _db.updateUserStats(kMockUid, state.toMap());
   }
 
+  Future<void> setName(String? n) async {
+    state = state.copyWith(name: n);
+    await _persist();
+  }
+
+  Future<void> setGender(CharacterGender g) async {
+    state = state.copyWith(gender: g);
+    await _persist();
+  }
+
   Future<void> setClass(CharacterClass cls) async {
     state = state.copyWith(characterClass: cls);
     await _persist();
@@ -37,6 +47,16 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
 
   Future<void> setSavings(double value) async {
     state = state.copyWith(savings: value.clamp(0, double.infinity));
+    await _persist();
+  }
+
+  Future<void> setSavingsGoal(double value) async {
+    state = state.copyWith(savingsGoal: value.clamp(100, double.infinity));
+    await _persist();
+  }
+
+  Future<void> setSavingsGoalUnknown(bool value) async {
+    state = state.copyWith(savingsGoalUnknown: value);
     await _persist();
   }
 
@@ -69,13 +89,33 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
     await _persist();
   }
 
+  Future<void> setInvestmentsUnknown(bool value) async {
+    state = state.copyWith(investmentsUnknown: value);
+    await _persist();
+  }
+
+  Future<void> setRothIraBalance(double value) async {
+    state = state.copyWith(rothIraBalance: value.clamp(0, double.infinity));
+    await _persist();
+  }
+
   Future<void> setHas401k(bool value) async {
     state = state.copyWith(has401k: value);
     await _persist();
   }
 
+  Future<void> set401kBalance(double value) async {
+    state = state.copyWith(balance401k: value.clamp(0, double.infinity));
+    await _persist();
+  }
+
   Future<void> setHasBrokerage(bool value) async {
     state = state.copyWith(hasBrokerage: value);
+    await _persist();
+  }
+
+  Future<void> setBrokerageBalance(double value) async {
+    state = state.copyWith(brokerageBalance: value.clamp(0, double.infinity));
     await _persist();
   }
 

@@ -27,49 +27,281 @@ class Chapter2Loadout extends ConsumerStatefulWidget {
 }
 
 class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
+  late final PageController _subPageController = PageController();
+  int _subStep = 0;
   bool _hasTriggeredVaultHaptic = false;
+
+  static const _subStepTitles = [
+    'Operating Funds',
+    'The Vault',
+    'The Shadow',
+    'The Time Machine',
+  ];
+  static const _subStepIcons = [
+    '\u{1F4B5}',
+    '\u{1F512}',
+    '\u{1F47B}',
+    '\u23F1',
+  ];
+  static const _subStepFocus = [
+    StageFocus.desk,
+    StageFocus.vault,
+    StageFocus.shadow,
+    StageFocus.watch,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => _focusStage(StageFocus.desk));
+  }
+
+  @override
+  void dispose() {
+    _subPageController.dispose();
+    super.dispose();
+  }
 
   void _focusStage(StageFocus? focus) {
     ref.read(stageFocusProvider.notifier).state = focus;
   }
 
+  void _nextSubStep() {
+    final next = _subStep + 1;
+    if (next <= 3) {
+      setState(() => _subStep = next);
+      _focusStage(_subStepFocus[next]);
+      _subPageController.nextPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOutCubic,
+      );
+    } else {
+      _focusStage(null);
+      widget.onNext();
+    }
+  }
+
+  void _prevSubStep() {
+    if (_subStep > 0) {
+      final prev = _subStep - 1;
+      setState(() => _subStep = prev);
+      _focusStage(_subStepFocus[prev]);
+      _subPageController.previousPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOutCubic,
+      );
+    } else {
+      _focusStage(null);
+      widget.onBack();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isLast = _subStep == 3;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: List.generate(
+                  4,
+                  (i) => Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      width: i == _subStep ? 20 : 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: i <= _subStep
+                            ? AppColors.navy
+                            : AppColors.border.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                    'Load your gear.',
+                    style: Theme.of(context).textTheme.displaySmall,
+                  )
+                  .animate(key: ValueKey('ch2-title-$_subStep'))
+                  .fadeIn(duration: 250.ms)
+                  .slideY(
+                    begin: 0.2,
+                    end: 0,
+                    duration: 250.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
+              const SizedBox(height: 4),
+              Text(
+                    '${_subStepIcons[_subStep]}  ${_subStepTitles[_subStep]}',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  )
+                  .animate(key: ValueKey('ch2-sub-$_subStep'))
+                  .fadeIn(duration: 250.ms, delay: 60.ms),
+            ],
+          ),
+        ),
+        Expanded(
+          child: PageView(
+            controller: _subPageController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _SubStepDesk(onFocus: () => _focusStage(StageFocus.desk)),
+              _SubStepVault(
+                hasTriggeredHaptic: _hasTriggeredVaultHaptic,
+                onHapticTriggered: () =>
+                    setState(() => _hasTriggeredVaultHaptic = true),
+                onHapticReset: () =>
+                    setState(() => _hasTriggeredVaultHaptic = false),
+                onFocus: () => _focusStage(StageFocus.vault),
+              ),
+              _SubStepShadow(onFocus: () => _focusStage(StageFocus.shadow)),
+              _SubStepWatch(onFocus: () => _focusStage(StageFocus.watch)),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          child: Row(
+            children: [
+              OutlinedButton(
+                onPressed: _prevSubStep,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
+                  side: const BorderSide(color: AppColors.navy, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: AppColors.navy,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: _nextSubStep,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.navy,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        isLast ? 'VIEW BATTLE STATS' : 'NEXT',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Sub-step 0: Operating Funds ────────────────────────────────────────────
+
+class _SubStepDesk extends ConsumerWidget {
+  final VoidCallback onFocus;
+
+  const _SubStepDesk({required this.onFocus});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(userStatsProvider);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
       children: [
-        // Header
-        Text('Load your gear.', style: Theme.of(context).textTheme.displaySmall)
-            .animate()
-            .fadeIn(duration: 300.ms)
-            .slideY(
-              begin: 0.3,
-              end: 0,
-              duration: 300.ms,
-              curve: Curves.easeOutCubic,
-            ),
-
-        const SizedBox(height: 4),
-        Text(
-          'Enter your real numbers — the stage updates in real time.',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-        ).animate().fadeIn(duration: 300.ms, delay: 80.ms),
-
-        const SizedBox(height: 20),
-
-        // ── 1. THE VAULT (Savings) ────────────────────────────────
-        _SectionLabel(
-          icon: '🔒',
-          label: 'THE VAULT',
-          subtitle: 'Emergency Fund',
-        ).animate().fadeIn(duration: 300.ms, delay: 120.ms),
-        const SizedBox(height: 10),
         BentoCard(
-          borderColor: stats.savings >= 1000
+          child: Focus(
+            onFocusChange: (hasFocus) {
+              if (hasFocus) onFocus();
+            },
+            child: CurrencyTextField(
+              label: 'Checking Account Balance',
+              initialValue: stats.checking,
+              onChanged: (v) =>
+                  ref.read(userStatsProvider.notifier).setChecking(v),
+            ),
+          ),
+        ).animate().fadeIn(duration: 300.ms, delay: 60.ms),
+        const SizedBox(height: 16),
+        Text(
+          'This is your everyday spending money — bills, groceries, gas. The Desk on stage shows your cash flow. Keep 1-3 months of expenses here.',
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ).animate().fadeIn(duration: 300.ms, delay: 120.ms),
+      ],
+    );
+  }
+}
+
+// ── Sub-step 1: The Vault ──────────────────────────────────────────────────
+
+class _SubStepVault extends ConsumerWidget {
+  final bool hasTriggeredHaptic;
+  final VoidCallback onHapticTriggered;
+  final VoidCallback onHapticReset;
+  final VoidCallback onFocus;
+
+  const _SubStepVault({
+    required this.hasTriggeredHaptic,
+    required this.onHapticTriggered,
+    required this.onHapticReset,
+    required this.onFocus,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(userStatsProvider);
+    final notifier = ref.read(userStatsProvider.notifier);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+      children: [
+        BentoCard(
+          borderColor: stats.vaultSealed
               ? AppColors.success.withValues(alpha: 0.4)
               : AppColors.border.withValues(alpha: 0.15),
           child: Column(
@@ -77,29 +309,67 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
             children: [
               Focus(
                 onFocusChange: (hasFocus) {
-                  if (hasFocus) _focusStage(StageFocus.vault);
+                  if (hasFocus) onFocus();
                 },
                 child: CurrencyTextField(
                   label: 'Savings Balance',
                   initialValue: stats.savings,
                   onChanged: (v) async {
-                    await ref.read(userStatsProvider.notifier).setSavings(v);
-                    if (v >= 1000 && !_hasTriggeredVaultHaptic) {
-                      _hasTriggeredVaultHaptic = true;
+                    await notifier.setSavings(v);
+                    if (v >= stats.savingsGoal && !hasTriggeredHaptic) {
+                      onHapticTriggered();
                       HapticFeedback.mediumImpact();
                     }
-                    if (v < 1000) _hasTriggeredVaultHaptic = false;
+                    if (v < stats.savingsGoal) onHapticReset();
                   },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Checkbox(
+                    value: stats.savingsGoalUnknown,
+                    onChanged: (v) =>
+                        notifier.setSavingsGoalUnknown(v ?? false),
+                    activeColor: AppColors.shadowBlue,
+                  ),
+                  Expanded(
+                    child: Text(
+                      "I don't know my goal yet",
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              AnimatedOpacity(
+                opacity: stats.savingsGoalUnknown ? 0.5 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: IgnorePointer(
+                  ignoring: stats.savingsGoalUnknown,
+                  child: Focus(
+                    onFocusChange: (hasFocus) {
+                      if (hasFocus) onFocus();
+                    },
+                    child: CurrencyTextField(
+                      label: 'Savings Goal',
+                      initialValue: stats.savingsGoal,
+                      onChanged: (v) => notifier.setSavingsGoal(v),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               AppProgressBar(
                 progress: stats.vaultProgress,
                 label: 'Emergency Fund Milestone',
-                valueLabel: '\$1,000',
+                valueLabel: _formatGoal(stats.savingsGoal),
                 height: 8,
               ),
-              if (stats.savings >= 1000)
+              if (stats.vaultSealed)
                 Padding(
                   padding: const EdgeInsets.only(top: 10),
                   child: Row(
@@ -111,7 +381,7 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Vault Sealed ⚡',
+                        'Vault Sealed',
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -123,40 +393,41 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
                 ),
             ],
           ),
-        ).animate().fadeIn(duration: 300.ms, delay: 160.ms),
+        ).animate().fadeIn(duration: 300.ms, delay: 60.ms),
+      ],
+    );
+  }
 
-        const SizedBox(height: 18),
+  String _formatGoal(double v) {
+    if (v >= 1000) return '\$${(v / 1000).toStringAsFixed(0)}k';
+    return '\$${v.toStringAsFixed(0)}';
+  }
+}
 
-        // ── 2. THE DESK (Checking) ────────────────────────────────
-        _SectionLabel(
-          icon: '💵',
-          label: 'THE DESK',
-          subtitle: 'Operating Funds',
-        ).animate().fadeIn(duration: 300.ms, delay: 200.ms),
-        const SizedBox(height: 10),
-        BentoCard(
-          child: Focus(
-            onFocusChange: (hasFocus) {
-              if (hasFocus) _focusStage(StageFocus.desk);
-            },
-            child: CurrencyTextField(
-              label: 'Operating Funds (Checking)',
-              initialValue: stats.checking,
-              onChanged: (v) =>
-                  ref.read(userStatsProvider.notifier).setChecking(v),
-            ),
+// ── Sub-step 2: The Shadow ─────────────────────────────────────────────────
+
+class _SubStepShadow extends ConsumerWidget {
+  final VoidCallback onFocus;
+
+  const _SubStepShadow({required this.onFocus});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(userStatsProvider);
+    final notifier = ref.read(userStatsProvider.notifier);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+      children: [
+        Text(
+          'The Shadow is the ghost of your debt — credit cards, loans, anything you owe. It grows stronger the more you owe, haunting your finances until you pay it off.',
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.5,
           ),
-        ).animate().fadeIn(duration: 300.ms, delay: 240.ms),
-
-        const SizedBox(height: 18),
-
-        // ── 3. THE DEBT SHADOW (Liabilities) ─────────────────────
-        _SectionLabel(
-          icon: '👻',
-          label: 'THE SHADOW',
-          subtitle: 'Liabilities',
-        ).animate().fadeIn(duration: 300.ms, delay: 280.ms),
-        const SizedBox(height: 10),
+        ).animate().fadeIn(duration: 300.ms),
+        const SizedBox(height: 12),
         BentoCard(
           borderColor: stats.totalDebt > 0
               ? AppColors.warning.withValues(alpha: 0.3)
@@ -167,16 +438,12 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
               ...stats.debts.map(
                 (debt) => Focus(
                   onFocusChange: (hasFocus) {
-                    if (hasFocus) _focusStage(StageFocus.shadow);
+                    if (hasFocus) onFocus();
                   },
                   child: DebtListEntry(
                     entry: debt,
-                    onChanged: (updated) => ref
-                        .read(userStatsProvider.notifier)
-                        .updateDebt(updated),
-                    onDelete: () => ref
-                        .read(userStatsProvider.notifier)
-                        .removeDebt(debt.id),
+                    onChanged: (updated) => notifier.updateDebt(updated),
+                    onDelete: () => notifier.removeDebt(debt.id),
                   ),
                 ),
               ),
@@ -184,22 +451,20 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
               GestureDetector(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  _focusStage(StageFocus.shadow);
-                  ref
-                      .read(userStatsProvider.notifier)
-                      .addDebt(
-                        DebtEntry(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          type: DebtType.creditCard,
-                          label: '',
-                          amount: 0,
-                        ),
-                      );
+                  onFocus();
+                  notifier.addDebt(
+                    DebtEntry(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      type: DebtType.creditCard,
+                      label: '',
+                      amount: 0,
+                    ),
+                  );
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.add_circle_outline_rounded,
                       size: 16,
                       color: AppColors.textSecondary,
@@ -243,192 +508,171 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
               ],
             ],
           ),
-        ).animate().fadeIn(duration: 300.ms, delay: 320.ms),
+        ).animate().fadeIn(duration: 300.ms, delay: 60.ms),
+      ],
+    );
+  }
+}
 
-        const SizedBox(height: 18),
+// ── Sub-step 3: The Time Machine ───────────────────────────────────────────
 
-        // ── 4. THE TIME MACHINE (Investments) ────────────────────
-        _SectionLabel(
-          icon: '⌚',
-          label: 'THE TIME MACHINE',
-          subtitle: 'Active Investments',
-        ).animate().fadeIn(duration: 300.ms, delay: 360.ms),
-        const SizedBox(height: 10),
-        BentoCard(
-          borderColor: stats.anyInvestmentActive
-              ? AppColors.shadowBlue.withValues(alpha: 0.3)
-              : AppColors.border.withValues(alpha: 0.15),
-          child: Column(
-            children: [
-              _InvestmentToggle(
-                label: 'Roth IRA',
-                icon: '📈',
-                value: stats.hasRothIra,
-                onChanged: (v) {
-                  _focusStage(StageFocus.watch);
-                  ref.read(userStatsProvider.notifier).setHasRothIra(v);
-                },
-              ),
-              const Divider(height: 20),
-              _InvestmentToggle(
-                label: '401(k)',
-                icon: '🏦',
-                value: stats.has401k,
-                onChanged: (v) {
-                  _focusStage(StageFocus.watch);
-                  ref.read(userStatsProvider.notifier).setHas401k(v);
-                },
-              ),
-              const Divider(height: 20),
-              _InvestmentToggle(
-                label: 'Brokerage Account',
-                icon: '💹',
-                value: stats.hasBrokerage,
-                onChanged: (v) {
-                  _focusStage(StageFocus.watch);
-                  ref.read(userStatsProvider.notifier).setHasBrokerage(v);
-                },
-              ),
-            ],
+class _SubStepWatch extends ConsumerWidget {
+  final VoidCallback onFocus;
+
+  const _SubStepWatch({required this.onFocus});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(userStatsProvider);
+    final notifier = ref.read(userStatsProvider.notifier);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+      children: [
+        Text(
+          'The Time Machine represents your investments — retirement accounts and brokerage accounts that grow over time through compound interest.',
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            color: AppColors.textSecondary,
+            height: 1.5,
           ),
-        ).animate().fadeIn(duration: 300.ms, delay: 400.ms),
-
-        const SizedBox(height: 28),
-
-        // Navigation row
+        ),
+        const SizedBox(height: 12),
         Row(
           children: [
-            OutlinedButton(
-              onPressed: widget.onBack,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 18,
-                ),
-                side: const BorderSide(color: AppColors.navy, width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: const Icon(
-                Icons.arrow_back_rounded,
-                color: AppColors.navy,
-                size: 20,
-              ),
+            Checkbox(
+              value: stats.investmentsUnknown,
+              onChanged: (v) => notifier.setInvestmentsUnknown(v ?? false),
+              activeColor: AppColors.shadowBlue,
             ),
-            const SizedBox(width: 12),
             Expanded(
-              child: FilledButton(
-                onPressed: () {
-                  _focusStage(null);
-                  widget.onNext();
-                },
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.navy,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'VIEW BATTLE STATS',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ],
+              child: Text(
+                "I don't know what these are yet",
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),
           ],
-        ).animate().fadeIn(duration: 300.ms, delay: 440.ms),
-      ],
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  final String icon;
-  final String label;
-  final String subtitle;
-
-  const _SectionLabel({
-    required this.icon,
-    required this.label,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(icon, style: const TextStyle(fontSize: 16)),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.navy,
-            letterSpacing: 1.2,
+        ),
+        const SizedBox(height: 10),
+        AnimatedOpacity(
+          opacity: stats.investmentsUnknown ? 0.5 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          child: IgnorePointer(
+            ignoring: stats.investmentsUnknown,
+            child: BentoCard(
+              borderColor: stats.anyInvestmentActive
+                  ? AppColors.shadowBlue.withValues(alpha: 0.3)
+                  : AppColors.border.withValues(alpha: 0.15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _InvestmentRow(
+                    icon: '\u{1F4C8}',
+                    label: 'Roth IRA',
+                    active: stats.hasRothIra,
+                    balance: stats.rothIraBalance,
+                    onToggle: (v) {
+                      onFocus();
+                      notifier.setHasRothIra(v);
+                    },
+                    onBalanceChanged: (v) => notifier.setRothIraBalance(v),
+                  ),
+                  const Divider(height: 20, indent: 4, endIndent: 4),
+                  _InvestmentRow(
+                    icon: '\u{1F3E6}',
+                    label: '401(k)',
+                    active: stats.has401k,
+                    balance: stats.balance401k,
+                    onToggle: (v) {
+                      onFocus();
+                      notifier.setHas401k(v);
+                    },
+                    onBalanceChanged: (v) => notifier.set401kBalance(v),
+                  ),
+                  const Divider(height: 20, indent: 4, endIndent: 4),
+                  _InvestmentRow(
+                    icon: '\u{1F4C9}',
+                    label: 'Brokerage Account',
+                    active: stats.hasBrokerage,
+                    balance: stats.brokerageBalance,
+                    onToggle: (v) {
+                      onFocus();
+                      notifier.setHasBrokerage(v);
+                    },
+                    onBalanceChanged: (v) => notifier.setBrokerageBalance(v),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(duration: 300.ms, delay: 60.ms),
           ),
         ),
-        const SizedBox(width: 6),
-        Text(
-          '/ $subtitle',
-          style: GoogleFonts.inter(fontSize: 12, color: AppColors.textMuted),
-        ),
       ],
     );
   }
 }
 
-class _InvestmentToggle extends StatelessWidget {
-  final String label;
-  final String icon;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+// ── Shared helpers ─────────────────────────────────────────────────────────
 
-  const _InvestmentToggle({
-    required this.label,
+class _InvestmentRow extends StatelessWidget {
+  final String icon;
+  final String label;
+  final bool active;
+  final double balance;
+  final ValueChanged<bool> onToggle;
+  final ValueChanged<double> onBalanceChanged;
+
+  const _InvestmentRow({
     required this.icon,
-    required this.value,
-    required this.onChanged,
+    required this.label,
+    required this.active,
+    required this.balance,
+    required this.onToggle,
+    required this.onBalanceChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(icon, style: const TextStyle(fontSize: 18)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
+        Row(
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ),
-          ),
+            Switch(
+              value: active,
+              onChanged: onToggle,
+              activeThumbColor: AppColors.shadowBlue,
+              activeTrackColor: AppColors.shadowBlue.withValues(alpha: 0.2),
+            ),
+          ],
         ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeThumbColor: AppColors.shadowBlue,
-          activeTrackColor: AppColors.shadowBlue.withValues(alpha: 0.2),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          child: active
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 30),
+                  child: CurrencyTextField(
+                    label: 'Current Balance',
+                    initialValue: balance,
+                    onChanged: onBalanceChanged,
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
       ],
     );

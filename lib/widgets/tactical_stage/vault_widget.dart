@@ -10,17 +10,25 @@ enum VaultState { open, ajar, locked }
 /// locked: door shut       — green LED glows, wheel detail
 class VaultWidget extends StatelessWidget {
   final double savings;
+  final double savingsGoal;
 
-  const VaultWidget({super.key, required this.savings});
+  const VaultWidget({
+    super.key,
+    required this.savings,
+    required this.savingsGoal,
+  });
+
+  double get _vaultProgress => (savings / savingsGoal).clamp(0.0, 1.0);
 
   VaultState get _state {
     if (savings <= 0) return VaultState.open;
-    if (savings < 1000) return VaultState.ajar;
+    if (savings < savingsGoal) return VaultState.ajar;
     return VaultState.locked;
   }
 
   @override
   Widget build(BuildContext context) {
+    final progress = _vaultProgress;
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: _doorAngle),
       duration: const Duration(milliseconds: 600),
@@ -28,7 +36,11 @@ class VaultWidget extends StatelessWidget {
       builder: (context, angle, _) {
         return CustomPaint(
           size: const Size(72, 80),
-          painter: _VaultPainter(doorAngle: angle, state: _state),
+          painter: _VaultPainter(
+            doorAngle: angle,
+            state: _state,
+            vaultProgress: progress,
+          ),
         );
       },
     );
@@ -49,17 +61,63 @@ class VaultWidget extends StatelessWidget {
 class _VaultPainter extends CustomPainter {
   final double doorAngle;
   final VaultState state;
+  final double vaultProgress;
 
-  _VaultPainter({required this.doorAngle, required this.state});
+  _VaultPainter({
+    required this.doorAngle,
+    required this.state,
+    required this.vaultProgress,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     _drawBody(canvas, size);
+    if (state != VaultState.open) {
+      _drawMoneyBills(canvas, size);
+    }
     _drawDoor(canvas, size);
     if (state == VaultState.locked) {
       _drawGreenLed(canvas, size);
     }
     _drawWheelDetail(canvas, size);
+  }
+
+  void _drawMoneyBills(Canvas canvas, Size size) {
+    if (vaultProgress <= 0) return;
+    // Cavity bounds: x≈6, y≈6, floor≈y+height-16
+    const cavityX = 8.0;
+    const cavityFloor = 66.0;
+    const billW = 13.0;
+    const billH = 5.0;
+    const gap = 1.5;
+    const maxStack = 40.0;
+
+    final stackH = maxStack * vaultProgress;
+    final count = ((stackH / (billH + gap)).ceil()).clamp(1, 7);
+
+    final fillPaint = Paint()..style = PaintingStyle.fill;
+    final strokePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.5
+      ..color = const Color(0xFF2E5C3A);
+
+    for (int i = 0; i < count; i++) {
+      final y = cavityFloor - (i + 1) * (billH + gap);
+      final x = cavityX + (i % 3) * 2.5;
+      fillPaint.color = i % 2 == 0
+          ? const Color(0xFF4CAF7D)
+          : const Color(0xFFD4EDDA);
+      final rect = Rect.fromLTWH(x, y, billW, billH);
+      final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(1));
+      // Tiny tilt for realism
+      canvas.save();
+      canvas.translate(x + billW / 2, y + billH / 2);
+      canvas.rotate((i % 3 - 1) * 0.03);
+      canvas.translate(-(x + billW / 2), -(y + billH / 2));
+      canvas.drawRRect(rrect, fillPaint);
+      canvas.drawRRect(rrect, strokePaint);
+      canvas.restore();
+    }
   }
 
   void _drawBody(Canvas canvas, Size size) {
@@ -207,5 +265,7 @@ class _VaultPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_VaultPainter oldDelegate) =>
-      oldDelegate.doorAngle != doorAngle || oldDelegate.state != state;
+      oldDelegate.doorAngle != doorAngle ||
+      oldDelegate.state != state ||
+      oldDelegate.vaultProgress != vaultProgress;
 }

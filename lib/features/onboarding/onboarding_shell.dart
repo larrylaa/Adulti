@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import '../../widgets/tactical_stage/tactical_stage.dart';
+import 'chapter0_gender.dart';
 import 'chapter1_class_selection.dart';
 import 'chapter2_loadout.dart';
 import 'chapter3_roi_oracle.dart';
@@ -14,11 +15,16 @@ class OnboardingShell extends StatefulWidget {
 
 class _OnboardingShellState extends State<OnboardingShell> {
   late final PageController _pageController;
+  int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _pageController.addListener(() {
+      final page = (_pageController.page ?? 0).round();
+      if (page != _currentPage) setState(() => _currentPage = page);
+    });
   }
 
   @override
@@ -43,45 +49,57 @@ class _OnboardingShellState extends State<OnboardingShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Top 40%: Tactical Stage ────────────────────────────
-            Expanded(
-              flex: 2,
-              child: ClipRect(
-                child: Stack(
+    return PopScope(
+      canPop: _currentPage == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _prevPage();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ── Top 40%: Tactical Stage ────────────────────────────
+              Expanded(
+                flex: 2,
+                child: ClipRect(
+                  child: Stack(
+                    children: [
+                      const TacticalStage(),
+                      // Chapter progress indicator
+                      Positioned(
+                        top: 12,
+                        left: 0,
+                        right: 0,
+                        child: _ChapterIndicator(controller: _pageController),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              Container(
+                height: 1,
+                color: AppColors.navy.withValues(alpha: 0.06),
+              ),
+
+              // ── Bottom 60%: Mission Console ────────────────────────
+              Expanded(
+                flex: 3,
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    const TacticalStage(),
-                    // Chapter progress indicator
-                    Positioned(
-                      top: 12,
-                      left: 0,
-                      right: 0,
-                      child: _ChapterIndicator(controller: _pageController),
-                    ),
+                    Chapter0Gender(onNext: _nextPage),
+                    Chapter1ClassSelection(onNext: _nextPage),
+                    Chapter2Loadout(onNext: _nextPage, onBack: _prevPage),
+                    Chapter3RoiOracle(onBack: _prevPage),
                   ],
                 ),
               ),
-            ),
-
-            Container(height: 1, color: AppColors.navy.withValues(alpha: 0.06)),
-
-            // ── Bottom 60%: Mission Console ────────────────────────
-            Expanded(
-              flex: 3,
-              child: PageView(
-                controller: _pageController,
-                children: [
-                  Chapter1ClassSelection(onNext: _nextPage),
-                  Chapter2Loadout(onNext: _nextPage, onBack: _prevPage),
-                  Chapter3RoiOracle(onBack: _prevPage),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -99,11 +117,11 @@ class _ChapterIndicator extends StatelessWidget {
       animation: controller,
       builder: (context, _) {
         final page = controller.hasClients
-            ? (controller.page ?? 0).round().clamp(0, 2)
+            ? (controller.page ?? 0).round().clamp(0, 3)
             : 0;
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(3, (i) {
+          children: List.generate(4, (i) {
             final isActive = i == page;
             return AnimatedContainer(
               duration: const Duration(milliseconds: 300),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 
-/// Translucent wisp/shadow entity hovering behind the character.
-/// Visibility and color lerp driven by debt amount and DTI ratio.
+/// Ghost-like shadow entity representing debt burden.
+/// More transparent and ethereal - haunts when debt exists.
 class ShadowWidget extends StatelessWidget {
   final double totalDebt;
   final double debtToIncomeRatio; // 0.0 – ∞
@@ -15,7 +15,7 @@ class ShadowWidget extends StatelessWidget {
 
   double get _opacity {
     if (totalDebt <= 0) return 0.0;
-    return (totalDebt / 10000).clamp(0.05, 0.85);
+    return (totalDebt / 30000).clamp(0.15, 0.75);
   }
 
   double get _scale {
