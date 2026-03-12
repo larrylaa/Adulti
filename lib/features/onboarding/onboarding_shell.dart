@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/theme.dart';
+import '../../providers/stage_focus_provider.dart';
 import '../../widgets/tactical_stage/tactical_stage.dart';
 import 'chapter0_gender.dart';
 import 'chapter1_class_selection.dart';
 import 'chapter2_loadout.dart';
 import 'chapter3_roi_oracle.dart';
 
-class OnboardingShell extends StatefulWidget {
+class OnboardingShell extends ConsumerStatefulWidget {
   const OnboardingShell({super.key});
 
   @override
-  State<OnboardingShell> createState() => _OnboardingShellState();
+  ConsumerState<OnboardingShell> createState() => _OnboardingShellState();
 }
 
-class _OnboardingShellState extends State<OnboardingShell> {
+class _OnboardingShellState extends ConsumerState<OnboardingShell> {
   late final PageController _pageController;
   int _currentPage = 0;
 
@@ -23,7 +25,13 @@ class _OnboardingShellState extends State<OnboardingShell> {
     _pageController = PageController();
     _pageController.addListener(() {
       final page = (_pageController.page ?? 0).round();
-      if (page != _currentPage) setState(() => _currentPage = page);
+      if (page != _currentPage) {
+        setState(() => _currentPage = page);
+        // Clear stage focus when leaving chapter 2
+        if (page != 2) {
+          ref.read(stageFocusProvider.notifier).state = null;
+        }
+      }
     });
   }
 
@@ -34,6 +42,10 @@ class _OnboardingShellState extends State<OnboardingShell> {
   }
 
   void _nextPage() {
+    // Clear focus when leaving chapter 2
+    if (_currentPage == 2) {
+      ref.read(stageFocusProvider.notifier).state = null;
+    }
     _pageController.nextPage(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOutCubic,
@@ -41,6 +53,10 @@ class _OnboardingShellState extends State<OnboardingShell> {
   }
 
   void _prevPage() {
+    // Clear focus when leaving chapter 2
+    if (_currentPage == 2) {
+      ref.read(stageFocusProvider.notifier).state = null;
+    }
     _pageController.previousPage(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOutCubic,

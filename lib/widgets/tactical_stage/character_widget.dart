@@ -3,58 +3,24 @@ import 'package:flutter/material.dart';
 import '../../models/user_stats.dart';
 import '../../app/theme.dart';
 
-/// Full-body character with 3D gradient shading, class accessories, gender hair.
-/// Drag left/right to spin (cos(angle) perspective scale).
-class CharacterWidget extends StatefulWidget {
+/// Full-body character with gradient shading, class accessories, gender hair.
+class CharacterWidget extends StatelessWidget {
   final CharacterClass? characterClass;
   final CharacterGender? gender;
-  final double rotationAngle;
 
   const CharacterWidget({
     super.key,
     this.characterClass,
     this.gender,
-    this.rotationAngle = 0.0,
   });
 
   @override
-  State<CharacterWidget> createState() => _CharacterWidgetState();
-}
-
-class _CharacterWidgetState extends State<CharacterWidget> {
-  late double _angle;
-
-  @override
-  void initState() {
-    super.initState();
-    _angle = widget.rotationAngle;
-  }
-
-  @override
-  void didUpdateWidget(covariant CharacterWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.rotationAngle != widget.rotationAngle) {
-      _angle = widget.rotationAngle;
-    }
-  }
-
-  void _onPanUpdate(DragUpdateDetails details) {
-    setState(() {
-      _angle += details.delta.dx * 0.008;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanUpdate: _onPanUpdate,
-      child: CustomPaint(
-        size: const Size(120, 200),
-        painter: _CharacterPainter(
-          characterClass: widget.characterClass,
-          gender: widget.gender,
-          rotationAngle: _angle,
-        ),
+    return CustomPaint(
+      size: const Size(120, 200),
+      painter: _CharacterPainter(
+        characterClass: characterClass,
+        gender: gender,
       ),
     );
   }
@@ -63,12 +29,10 @@ class _CharacterWidgetState extends State<CharacterWidget> {
 class _CharacterPainter extends CustomPainter {
   final CharacterClass? characterClass;
   final CharacterGender? gender;
-  final double rotationAngle;
 
   _CharacterPainter({
     this.characterClass,
     this.gender,
-    required this.rotationAngle,
   });
 
   // ── Palette ────────────────────────────────────────────────────────────────
@@ -89,13 +53,6 @@ class _CharacterPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
-    final scaleX = cos(rotationAngle).abs().clamp(0.15, 1.0);
-    final facingRight = sin(rotationAngle) < 0;
-
-    canvas.save();
-    canvas.translate(cx, 0);
-    canvas.scale(scaleX * (facingRight ? -1 : 1), 1.0);
-    canvas.translate(-cx, 0);
 
     _drawShadow(canvas, size, cx);
     _drawLegs(canvas, size, cx);
@@ -110,8 +67,6 @@ class _CharacterPainter extends CustomPainter {
     if (characterClass != null) {
       _drawAccessory(canvas, size, cx, characterClass!);
     }
-
-    canvas.restore();
   }
 
   // ── Ground shadow ───────────────────────────────────────────────────────────
@@ -560,62 +515,113 @@ class _CharacterPainter extends CustomPainter {
   void _drawAccessory(Canvas canvas, Size size, double cx, CharacterClass cls) {
     switch (cls) {
       case CharacterClass.student:
-        _drawBackpack(canvas, size, cx);
+        _drawHeadphones(canvas, size, cx);
+        _drawBook(canvas, size, cx);
       case CharacterClass.graduate:
-        _drawBackpack(canvas, size, cx);
         _drawGraduationCap(canvas, size, cx);
+        _drawDiploma(canvas, size, cx);
       case CharacterClass.professional:
         _drawBlazer(canvas, size, cx);
         _drawWatch(canvas, size, cx);
     }
   }
 
-  // ── Backpack (Student + Graduate) ────────────────────────────────────────
-  void _drawBackpack(Canvas canvas, Size size, double cx) {
-    final bagRect = Rect.fromLTWH(cx + 14, size.height * 0.31, 22, 28);
-    // Body
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(bagRect, const Radius.circular(5)),
+  // ── Headphones around neck (Student) ─────────────────────────────────────
+  void _drawHeadphones(Canvas canvas, Size size, double cx) {
+    final hpColor = const Color(0xFF1E293B);
+    final hpAccent = const Color(0xFF475569);
+    
+    // Headband hanging around neck
+    final bandPath = Path()
+      ..moveTo(cx - 18, size.height * 0.28)
+      ..quadraticBezierTo(cx - 22, size.height * 0.35, cx - 16, size.height * 0.40)
+      ..moveTo(cx + 18, size.height * 0.28)
+      ..quadraticBezierTo(cx + 22, size.height * 0.35, cx + 16, size.height * 0.40);
+    canvas.drawPath(
+      bandPath,
       Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [const Color(0xFFB45309), const Color(0xFF92400E)],
-        ).createShader(bagRect),
-    );
-    // Body edge highlight
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(bagRect, const Radius.circular(5)),
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.12)
+        ..color = hpColor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round,
     );
+    
+    // Left ear cup
+    canvas.drawCircle(
+      Offset(cx - 16, size.height * 0.40),
+      6,
+      Paint()..color = hpColor,
+    );
+    canvas.drawCircle(
+      Offset(cx - 16, size.height * 0.40),
+      4,
+      Paint()..color = hpAccent,
+    );
+    
+    // Right ear cup
+    canvas.drawCircle(
+      Offset(cx + 16, size.height * 0.40),
+      6,
+      Paint()..color = hpColor,
+    );
+    canvas.drawCircle(
+      Offset(cx + 16, size.height * 0.40),
+      4,
+      Paint()..color = hpAccent,
+    );
+  }
 
-    // Front pocket
-    final pocketRect = Rect.fromLTWH(cx + 16, size.height * 0.31 + 16, 18, 10);
+  // ── Book in hand (Student) ───────────────────────────────────────────────
+  void _drawBook(Canvas canvas, Size size, double cx) {
+    final bookRect = Rect.fromLTWH(cx + 30, size.height * 0.46, 14, 18);
+    
+    // Book cover
     canvas.drawRRect(
-      RRect.fromRectAndRadius(pocketRect, const Radius.circular(3)),
-      Paint()..color = const Color(0xFF78350F),
+      RRect.fromRectAndRadius(bookRect, const Radius.circular(2)),
+      Paint()..color = const Color(0xFF7C3AED),
     );
+    
+    // Pages (white edge)
+    canvas.drawRect(
+      Rect.fromLTWH(cx + 31, size.height * 0.47, 2, 16),
+      Paint()..color = const Color(0xFFF8FAFC),
+    );
+    
+    // Book spine highlight
+    canvas.drawLine(
+      Offset(cx + 30, size.height * 0.46),
+      Offset(cx + 30, size.height * 0.46 + 18),
+      Paint()
+        ..color = const Color(0xFF5B21B6)
+        ..strokeWidth = 1.5,
+    );
+  }
 
-    // Left shoulder strap
-    canvas.drawLine(
-      Offset(cx + 15, size.height * 0.31),
-      Offset(cx + 4, size.height * 0.44),
-      Paint()
-        ..color = const Color(0xFF78350F)
-        ..strokeWidth = 3.5
-        ..strokeCap = StrokeCap.round,
+  // ── Diploma in hand (Graduate) ───────────────────────────────────────────
+  void _drawDiploma(Canvas canvas, Size size, double cx) {
+    // Rolled diploma in hand
+    final diplomaRect = Rect.fromLTWH(cx + 28, size.height * 0.48, 16, 10);
+    
+    // Paper roll
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(diplomaRect, const Radius.circular(5)),
+      Paint()..color = const Color(0xFFFEF3C7),
     );
-    // Right strap
-    canvas.drawLine(
-      Offset(cx + 30, size.height * 0.31),
-      Offset(cx + 18, size.height * 0.50),
-      Paint()
-        ..color = const Color(0xFF78350F)
-        ..strokeWidth = 3.5
-        ..strokeCap = StrokeCap.round,
+    
+    // Roll shadow
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx + 28, size.height * 0.52, 16, 4),
+        const Radius.circular(3),
+      ),
+      Paint()..color = const Color(0xFFFDE68A),
+    );
+    
+    // Red ribbon
+    canvas.drawCircle(
+      Offset(cx + 36, size.height * 0.53),
+      3,
+      Paint()..color = const Color(0xFFDC2626),
     );
   }
 
@@ -776,6 +782,5 @@ class _CharacterPainter extends CustomPainter {
   @override
   bool shouldRepaint(_CharacterPainter oldDelegate) =>
       oldDelegate.characterClass != characterClass ||
-      oldDelegate.gender != gender ||
-      oldDelegate.rotationAngle != rotationAngle;
+      oldDelegate.gender != gender;
 }
