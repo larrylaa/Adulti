@@ -64,7 +64,7 @@ class TacticalStage extends ConsumerWidget {
                   focusedTranslateX: -60,
                   focusedTranslateY: -20,
                   glowColor: AppColors.shadowBlue,
-                  child: WatchBeamWidget(active: stats.anyInvestmentActive),
+                  child: WatchBeamWidget(totalInvestments: stats.totalInvestments),
                 ),
               ),
 

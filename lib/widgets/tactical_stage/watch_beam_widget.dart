@@ -3,16 +3,21 @@ import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 
 /// Holographic blue beam emitting from the character's wrist watch.
-/// Only visible (with animated fade-in) when any investment account is active.
+/// Visibility scales with total investment balance.
 class WatchBeamWidget extends StatelessWidget {
-  final bool active;
+  final double totalInvestments;
 
-  const WatchBeamWidget({super.key, required this.active});
+  const WatchBeamWidget({super.key, required this.totalInvestments});
 
   @override
   Widget build(BuildContext context) {
+    // Scale opacity: starts faint at $1, full at $50k+
+    final opacity = totalInvestments > 0
+        ? (totalInvestments / 50000).clamp(0.15, 1.0)
+        : 0.0;
+
     return AnimatedOpacity(
-      opacity: active ? 1.0 : 0.0,
+      opacity: opacity,
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeOutCubic,
       child: CustomPaint(

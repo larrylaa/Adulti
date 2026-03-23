@@ -19,7 +19,8 @@ class ProfileScreen extends ConsumerWidget {
     final stats = ref.watch(userStatsProvider);
     final notifier = ref.read(userStatsProvider.notifier);
     final user = FirebaseAuth.instance.currentUser;
-    final username = user?.displayName ?? user?.email?.split('@').first ?? 'Unknown';
+    final username =
+        user?.displayName ?? user?.email?.split('@').first ?? 'Unknown';
     final accountAlias = user?.email ?? 'Not set';
 
     return Scaffold(
@@ -35,9 +36,9 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               'Update your character, finances, and account settings in one place.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ).animate().fadeIn(duration: 300.ms, delay: 80.ms),
             const SizedBox(height: 18),
             BentoCard(
@@ -49,7 +50,9 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    stats.name?.isNotEmpty == true ? stats.name! : 'Your Profile',
+                    stats.name?.isNotEmpty == true
+                        ? stats.name!
+                        : 'Your Profile',
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -99,7 +102,10 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   _AccountInfoRow(label: 'Username', value: username),
                   const SizedBox(height: 8),
-                  _AccountInfoRow(label: 'Firebase email alias', value: accountAlias),
+                  _AccountInfoRow(
+                    label: 'Firebase email alias',
+                    value: accountAlias,
+                  ),
                   const SizedBox(height: 12),
                   _ActionOption(
                     icon: Icons.badge_outlined,
@@ -125,7 +131,8 @@ class ProfileScreen extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: () => _confirmResetCharacter(context, notifier),
+                      onPressed: () =>
+                          _confirmResetCharacter(context, notifier),
                       child: const Text('Reset character'),
                     ),
                   ),
@@ -321,7 +328,9 @@ Future<void> _changeUsername(BuildContext context) async {
               TextFormField(
                 controller: passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Current password'),
+                decoration: const InputDecoration(
+                  labelText: 'Current password',
+                ),
                 validator: (value) {
                   if ((value ?? '').length < 6) {
                     return 'Enter your current password.';
@@ -374,9 +383,9 @@ Future<void> _changeUsername(BuildContext context) async {
   });
 
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Username updated.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Username updated.')));
   }
 }
 
@@ -398,9 +407,12 @@ Future<void> _changePassword(BuildContext context) async {
               TextFormField(
                 controller: currentPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Current password'),
+                decoration: const InputDecoration(
+                  labelText: 'Current password',
+                ),
                 validator: (value) {
-                  if ((value ?? '').length < 6) return 'Enter your current password.';
+                  if ((value ?? '').length < 6)
+                    return 'Enter your current password.';
                   return null;
                 },
               ),
@@ -410,7 +422,8 @@ Future<void> _changePassword(BuildContext context) async {
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'New password'),
                 validator: (value) {
-                  if ((value ?? '').length < 6) return 'Use at least 6 characters.';
+                  if ((value ?? '').length < 6)
+                    return 'Use at least 6 characters.';
                   return null;
                 },
               ),
@@ -449,9 +462,9 @@ Future<void> _changePassword(BuildContext context) async {
   await user.updatePassword(newPasswordController.text);
 
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password updated.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Password updated.')));
   }
 }
 

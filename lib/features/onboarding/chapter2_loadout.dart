@@ -57,6 +57,13 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
   }
 
   @override
+  void deactivate() {
+    // Clear focus when leaving this screen
+    ref.read(stageFocusProvider.notifier).state = null;
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
     _subPageController.dispose();
     super.dispose();

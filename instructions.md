@@ -21,7 +21,9 @@ into the Adultin app. The mock database layer was designed to make this a
 
 1. In the Firebase Console → Project Overview → Add app → Android
 2. Use the package name from `android/app/build.gradle.kts`: `com.example.adulti`
-  - Rename it to something like `com.yourdomain.adulti` for production
+
+- Rename it to something like `com.yourdomain.adulti` for production
+
 3. Download `google-services.json` → place it at `android/app/google-services.json`
 
 ### iOS

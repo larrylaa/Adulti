@@ -136,9 +136,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 'Sign in with a username and password to save your profile to Firebase.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.5,
-                    ),
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
               ).animate().fadeIn(duration: 400.ms, delay: 280.ms),
               const SizedBox(height: 20),
               BentoCard(
@@ -148,7 +148,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _isRegisterMode ? 'Create your account' : 'Welcome back',
+                        _isRegisterMode
+                            ? 'Create your account'
+                            : 'Welcome back',
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -159,7 +161,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       TextFormField(
                         controller: _usernameController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(labelText: 'Username'),
+                        decoration: const InputDecoration(
+                          labelText: 'Username',
+                        ),
                         validator: (value) {
                           final text = value?.trim() ?? '';
                           if (text.isEmpty) {
@@ -171,7 +175,9 @@ class _AuthScreenState extends State<AuthScreen> {
                           if (text.length > 20) {
                             return 'Keep it under 20 characters.';
                           }
-                          final valid = RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(text);
+                          final valid = RegExp(
+                            r'^[a-zA-Z0-9_]+$',
+                          ).hasMatch(text);
                           if (!valid) {
                             return 'Use only letters, numbers, and underscore.';
                           }
@@ -183,7 +189,9 @@ class _AuthScreenState extends State<AuthScreen> {
                         controller: _passwordController,
                         obscureText: true,
                         textInputAction: TextInputAction.done,
-                        decoration: const InputDecoration(labelText: 'Password'),
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                        ),
                         validator: (value) {
                           if ((value ?? '').length < 6) {
                             return 'Password must be at least 6 characters.';
@@ -210,9 +218,11 @@ class _AuthScreenState extends State<AuthScreen> {
                             onPressed: _isSubmitting
                                 ? null
                                 : () => setState(() {
-                                      _isRegisterMode = !_isRegisterMode;
-                                    }),
-                            child: Text(_isRegisterMode ? 'Sign in' : 'Create one'),
+                                    _isRegisterMode = !_isRegisterMode;
+                                  }),
+                            child: Text(
+                              _isRegisterMode ? 'Sign in' : 'Create one',
+                            ),
                           ),
                         ],
                       ),

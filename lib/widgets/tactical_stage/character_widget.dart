@@ -4,18 +4,11 @@ import '../../models/user_stats.dart';
 import '../../app/theme.dart';
 
 /// Full-body character with 3D gradient shading, class accessories, gender hair.
-/// Static pose with class-specific props.
 class CharacterWidget extends StatelessWidget {
   final CharacterClass? characterClass;
   final CharacterGender? gender;
-  final double rotationAngle;
 
-  const CharacterWidget({
-    super.key,
-    this.characterClass,
-    this.gender,
-    this.rotationAngle = 0.0,
-  });
+  const CharacterWidget({super.key, this.characterClass, this.gender});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +17,6 @@ class CharacterWidget extends StatelessWidget {
       painter: _CharacterPainter(
         characterClass: characterClass,
         gender: gender,
-        rotationAngle: rotationAngle,
       ),
     );
   }
@@ -33,13 +25,8 @@ class CharacterWidget extends StatelessWidget {
 class _CharacterPainter extends CustomPainter {
   final CharacterClass? characterClass;
   final CharacterGender? gender;
-  final double rotationAngle;
 
-  _CharacterPainter({
-    this.characterClass,
-    this.gender,
-    required this.rotationAngle,
-  });
+  _CharacterPainter({this.characterClass, this.gender});
 
   // ── Palette ────────────────────────────────────────────────────────────────
   static const _skinBase = Color(0xFFF5CBA7);
@@ -59,13 +46,6 @@ class _CharacterPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
-    final scaleX = cos(rotationAngle).abs().clamp(0.15, 1.0);
-    final facingRight = sin(rotationAngle) < 0;
-
-    canvas.save();
-    canvas.translate(cx, 0);
-    canvas.scale(scaleX * (facingRight ? -1 : 1), 1.0);
-    canvas.translate(-cx, 0);
 
     _drawShadow(canvas, size, cx);
     _drawLegs(canvas, size, cx);
@@ -80,8 +60,6 @@ class _CharacterPainter extends CustomPainter {
     if (characterClass != null) {
       _drawAccessory(canvas, size, cx, characterClass!);
     }
-
-    canvas.restore();
   }
 
   // ── Ground shadow ───────────────────────────────────────────────────────────
@@ -546,7 +524,6 @@ class _CharacterPainter extends CustomPainter {
   // ── Notebook (Student) ──────────────────────────────────────────────────
   void _drawNotebook(Canvas canvas, Size size, double cx) {
     final bagRect = Rect.fromLTWH(cx + 12, size.height * 0.33, 22, 18);
-    // Body
     canvas.drawRRect(
       RRect.fromRectAndRadius(bagRect, const Radius.circular(4)),
       Paint()
@@ -556,7 +533,6 @@ class _CharacterPainter extends CustomPainter {
           colors: [const Color(0xFF93C5FD), const Color(0xFF3B82F6)],
         ).createShader(bagRect),
     );
-    // Body edge highlight
     canvas.drawRRect(
       RRect.fromRectAndRadius(bagRect, const Radius.circular(4)),
       Paint()
@@ -565,7 +541,6 @@ class _CharacterPainter extends CustomPainter {
         ..strokeWidth = 1,
     );
 
-    // Page lines
     final linePaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.35)
       ..strokeWidth = 1;
@@ -574,7 +549,6 @@ class _CharacterPainter extends CustomPainter {
       canvas.drawLine(Offset(cx + 15, y), Offset(cx + 30, y), linePaint);
     }
 
-    // Small tab / bookmark
     final tabPath = Path()
       ..moveTo(cx + 30, size.height * 0.335)
       ..lineTo(cx + 34, size.height * 0.335)
@@ -773,6 +747,5 @@ class _CharacterPainter extends CustomPainter {
   @override
   bool shouldRepaint(_CharacterPainter oldDelegate) =>
       oldDelegate.characterClass != characterClass ||
-      oldDelegate.gender != gender ||
-      oldDelegate.rotationAngle != rotationAngle;
+      oldDelegate.gender != gender;
 }
