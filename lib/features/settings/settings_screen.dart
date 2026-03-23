@@ -19,9 +19,7 @@ class ProfileScreen extends ConsumerWidget {
     final stats = ref.watch(userStatsProvider);
     final notifier = ref.read(userStatsProvider.notifier);
     final user = FirebaseAuth.instance.currentUser;
-    final username =
-        user?.displayName ?? user?.email?.split('@').first ?? 'Unknown';
-    final accountAlias = user?.email ?? 'Not set';
+    final email = user?.email ?? 'Not set';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -100,18 +98,18 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _AccountInfoRow(label: 'Username', value: username),
+                  _AccountInfoRow(label: 'Email', value: email),
                   const SizedBox(height: 8),
                   _AccountInfoRow(
-                    label: 'Firebase email alias',
-                    value: accountAlias,
+                    label: 'Display name',
+                    value: user?.displayName ?? 'Not set',
                   ),
                   const SizedBox(height: 12),
                   _ActionOption(
                     icon: Icons.badge_outlined,
-                    title: 'Change username',
-                    subtitle: 'Update the sign-in alias and display name.',
-                    onTap: () => _changeUsername(context),
+                    title: 'Change email',
+                    subtitle: 'Update the Firebase sign-in email.',
+                    onTap: () => _changeEmail(context),
                   ),
                   const SizedBox(height: 10),
                   _ActionOption(
@@ -296,8 +294,8 @@ Future<void> _confirmOpenSetupEditor(BuildContext context) async {
   }
 }
 
-Future<void> _changeUsername(BuildContext context) async {
-  final usernameController = TextEditingController();
+Future<void> _changeEmail(BuildContext context) async {
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
@@ -305,21 +303,22 @@ Future<void> _changeUsername(BuildContext context) async {
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('Change username'),
+        title: const Text('Change email'),
         content: Form(
           key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
-                controller: usernameController,
-                decoration: const InputDecoration(labelText: 'New username'),
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+                decoration: const InputDecoration(labelText: 'New email'),
                 validator: (value) {
                   final text = value?.trim() ?? '';
-                  if (text.length < 3) return 'Use at least 3 characters.';
-                  if (text.length > 20) return 'Keep it under 20 characters.';
-                  if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(text)) {
-                    return 'Use only letters, numbers, and underscore.';
+                  if (text.isEmpty) return 'Email is required.';
+                  if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(text)) {
+                    return 'Enter a valid email address.';
                   }
                   return null;
                 },
@@ -364,8 +363,7 @@ Future<void> _changeUsername(BuildContext context) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null || user.email == null) return;
 
-  final newUsername = usernameController.text.trim().toLowerCase();
-  final newEmail = '$newUsername@adulti.local';
+  final newEmail = emailController.text.trim().toLowerCase();
   final credential = EmailAuthProvider.credential(
     email: user.email!,
     password: passwordController.text,
@@ -374,18 +372,17 @@ Future<void> _changeUsername(BuildContext context) async {
   await user.reauthenticateWithCredential(credential);
   // ignore: deprecated_member_use
   await user.updateEmail(newEmail);
-  await user.updateDisplayName(newUsername);
+  await user.updateDisplayName(newEmail.split('@').first);
   await user.reload();
 
   await FirestoreDatabaseService().updateUserStats(user.uid, {
-    'authUsername': newUsername,
-    'authEmailAlias': newEmail,
+    'authEmail': newEmail,
   });
 
   if (context.mounted) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Username updated.')));
+    ).showSnackBar(const SnackBar(content: Text('Email updated.')));
   }
 }
 
@@ -411,8 +408,9 @@ Future<void> _changePassword(BuildContext context) async {
                   labelText: 'Current password',
                 ),
                 validator: (value) {
-                  if ((value ?? '').length < 6)
+                  if ((value ?? '').length < 6) {
                     return 'Enter your current password.';
+                  }
                   return null;
                 },
               ),
@@ -422,8 +420,9 @@ Future<void> _changePassword(BuildContext context) async {
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'New password'),
                 validator: (value) {
-                  if ((value ?? '').length < 6)
+                  if ((value ?? '').length < 6) {
                     return 'Use at least 6 characters.';
+                  }
                   return null;
                 },
               ),

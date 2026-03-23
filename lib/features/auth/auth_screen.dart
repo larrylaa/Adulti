@@ -16,7 +16,7 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
@@ -24,15 +24,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
-
-  String _normalizedUsername(String value) => value.trim().toLowerCase();
-
-  String _usernameToEmail(String value) =>
-      '${_normalizedUsername(value)}@adulti.local';
 
   Future<void> _submit() async {
     if (_isSubmitting) return;
@@ -42,13 +37,12 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
-    final username = _normalizedUsername(_usernameController.text);
+    final email = _emailController.text.trim().toLowerCase();
     final password = _passwordController.text;
 
     setState(() => _isSubmitting = true);
     try {
       final auth = FirebaseAuth.instance;
-      final email = _usernameToEmail(username);
 
       UserCredential credential;
       if (_isRegisterMode) {
@@ -56,14 +50,13 @@ class _AuthScreenState extends State<AuthScreen> {
           email: email,
           password: password,
         );
-        await credential.user?.updateDisplayName(username);
+        await credential.user?.updateDisplayName(email.split('@').first);
         await credential.user?.reload();
 
         final uid = credential.user?.uid;
         if (uid != null) {
           await FirestoreDatabaseService().updateUserStats(uid, {
-            'authUsername': username,
-            'authEmailAlias': email,
+            'authEmail': email,
           });
         }
       } else {
@@ -159,27 +152,23 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
-                        controller: _usernameController,
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
                         textInputAction: TextInputAction.next,
                         decoration: const InputDecoration(
-                          labelText: 'Username',
+                          labelText: 'Email',
                         ),
                         validator: (value) {
                           final text = value?.trim() ?? '';
                           if (text.isEmpty) {
-                            return 'Username is required.';
-                          }
-                          if (text.length < 3) {
-                            return 'Use at least 3 characters.';
-                          }
-                          if (text.length > 20) {
-                            return 'Keep it under 20 characters.';
+                            return 'Email is required.';
                           }
                           final valid = RegExp(
-                            r'^[a-zA-Z0-9_]+$',
+                            r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
                           ).hasMatch(text);
                           if (!valid) {
-                            return 'Use only letters, numbers, and underscore.';
+                            return 'Enter a valid email address.';
                           }
                           return null;
                         },
@@ -246,7 +235,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Your username and password keep your Adulti profile secure.',
+                'Your email and password keep your Adulti profile secure.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 12,
