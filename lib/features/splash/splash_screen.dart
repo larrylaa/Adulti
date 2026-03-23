@@ -20,29 +20,25 @@ class SplashScreen extends StatelessWidget {
 
               // Logo Badge
               Container(
-                    width: 80,
-                    height: 80,
+                    width: 96,
+                    height: 96,
                     decoration: BoxDecoration(
-                      color: AppColors.navy,
-                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.navy.withValues(alpha: 0.3),
+                          color: AppColors.navy.withValues(alpha: 0.18),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
                       ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        'A',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
+                      border: Border.all(
+                        color: AppColors.border.withValues(alpha: 0.12),
+                        width: 1.5,
                       ),
                     ),
+                    padding: const EdgeInsets.all(14),
+                    child: Image.asset('adultinlogo.png', fit: BoxFit.contain),
                   )
                   .animate()
                   .fadeIn(duration: 600.ms, delay: 200.ms)
@@ -56,7 +52,7 @@ class SplashScreen extends StatelessWidget {
 
               // App Name
               Text(
-                    'ADULTIN',
+                    'ADULTI',
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 48,
                       fontWeight: FontWeight.w800,
@@ -77,7 +73,7 @@ class SplashScreen extends StatelessWidget {
 
               // Tagline
               Text(
-                'Your financial life,\ngamified.',
+                'Your financial life,\nmade clearer.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 17,
@@ -113,7 +109,7 @@ class SplashScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'ENTER THE ARENA',
+                            'GET STARTED',
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,

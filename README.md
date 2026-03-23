@@ -1,2 +1,3 @@
-# Adultin
+# Adulti
+
 Step confidently into adulthood.

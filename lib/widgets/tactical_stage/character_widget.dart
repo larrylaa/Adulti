@@ -4,8 +4,8 @@ import '../../models/user_stats.dart';
 import '../../app/theme.dart';
 
 /// Full-body character with 3D gradient shading, class accessories, gender hair.
-/// Drag left/right to spin (cos(angle) perspective scale).
-class CharacterWidget extends StatefulWidget {
+/// Static pose with class-specific props.
+class CharacterWidget extends StatelessWidget {
   final CharacterClass? characterClass;
   final CharacterGender? gender;
   final double rotationAngle;
@@ -18,43 +18,13 @@ class CharacterWidget extends StatefulWidget {
   });
 
   @override
-  State<CharacterWidget> createState() => _CharacterWidgetState();
-}
-
-class _CharacterWidgetState extends State<CharacterWidget> {
-  late double _angle;
-
-  @override
-  void initState() {
-    super.initState();
-    _angle = widget.rotationAngle;
-  }
-
-  @override
-  void didUpdateWidget(covariant CharacterWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.rotationAngle != widget.rotationAngle) {
-      _angle = widget.rotationAngle;
-    }
-  }
-
-  void _onPanUpdate(DragUpdateDetails details) {
-    setState(() {
-      _angle += details.delta.dx * 0.008;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanUpdate: _onPanUpdate,
-      child: CustomPaint(
-        size: const Size(120, 200),
-        painter: _CharacterPainter(
-          characterClass: widget.characterClass,
-          gender: widget.gender,
-          rotationAngle: _angle,
-        ),
+    return CustomPaint(
+      size: const Size(120, 200),
+      painter: _CharacterPainter(
+        characterClass: characterClass,
+        gender: gender,
+        rotationAngle: rotationAngle,
       ),
     );
   }
@@ -560,61 +530,88 @@ class _CharacterPainter extends CustomPainter {
   void _drawAccessory(Canvas canvas, Size size, double cx, CharacterClass cls) {
     switch (cls) {
       case CharacterClass.student:
-        _drawBackpack(canvas, size, cx);
+        _drawNotebook(canvas, size, cx);
+        break;
       case CharacterClass.graduate:
-        _drawBackpack(canvas, size, cx);
         _drawGraduationCap(canvas, size, cx);
+        break;
       case CharacterClass.professional:
         _drawBlazer(canvas, size, cx);
+        _drawPhone(canvas, size, cx);
         _drawWatch(canvas, size, cx);
+        break;
     }
   }
 
-  // ── Backpack (Student + Graduate) ────────────────────────────────────────
-  void _drawBackpack(Canvas canvas, Size size, double cx) {
-    final bagRect = Rect.fromLTWH(cx + 14, size.height * 0.31, 22, 28);
+  // ── Notebook (Student) ──────────────────────────────────────────────────
+  void _drawNotebook(Canvas canvas, Size size, double cx) {
+    final bagRect = Rect.fromLTWH(cx + 12, size.height * 0.33, 22, 18);
     // Body
     canvas.drawRRect(
-      RRect.fromRectAndRadius(bagRect, const Radius.circular(5)),
+      RRect.fromRectAndRadius(bagRect, const Radius.circular(4)),
       Paint()
         ..shader = LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [const Color(0xFFB45309), const Color(0xFF92400E)],
+          colors: [const Color(0xFF93C5FD), const Color(0xFF3B82F6)],
         ).createShader(bagRect),
     );
     // Body edge highlight
     canvas.drawRRect(
-      RRect.fromRectAndRadius(bagRect, const Radius.circular(5)),
+      RRect.fromRectAndRadius(bagRect, const Radius.circular(4)),
       Paint()
         ..color = Colors.white.withValues(alpha: 0.12)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
 
-    // Front pocket
-    final pocketRect = Rect.fromLTWH(cx + 16, size.height * 0.31 + 16, 18, 10);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(pocketRect, const Radius.circular(3)),
-      Paint()..color = const Color(0xFF78350F),
-    );
+    // Page lines
+    final linePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.35)
+      ..strokeWidth = 1;
+    for (int i = 0; i < 3; i++) {
+      final y = size.height * 0.335 + 4.0 + i * 4.0;
+      canvas.drawLine(Offset(cx + 15, y), Offset(cx + 30, y), linePaint);
+    }
 
-    // Left shoulder strap
-    canvas.drawLine(
-      Offset(cx + 15, size.height * 0.31),
-      Offset(cx + 4, size.height * 0.44),
+    // Small tab / bookmark
+    final tabPath = Path()
+      ..moveTo(cx + 30, size.height * 0.335)
+      ..lineTo(cx + 34, size.height * 0.335)
+      ..lineTo(cx + 34, size.height * 0.345)
+      ..lineTo(cx + 32, size.height * 0.353)
+      ..lineTo(cx + 30, size.height * 0.345)
+      ..close();
+    canvas.drawPath(tabPath, Paint()..color = const Color(0xFFF8FAFC));
+  }
+
+  // ── Phone (Professional) ────────────────────────────────────────────────
+  void _drawPhone(Canvas canvas, Size size, double cx) {
+    final phoneRect = Rect.fromLTWH(cx + 18, size.height * 0.41, 9, 16);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(phoneRect, const Radius.circular(2.5)),
       Paint()
-        ..color = const Color(0xFF78350F)
-        ..strokeWidth = 3.5
-        ..strokeCap = StrokeCap.round,
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [const Color(0xFF111827), const Color(0xFF374151)],
+        ).createShader(phoneRect),
     );
-    // Right strap
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(phoneRect.deflate(1), const Radius.circular(2)),
+      Paint()..color = Colors.white.withValues(alpha: 0.08),
+    );
+    canvas.drawCircle(
+      Offset(cx + 22.5, size.height * 0.425),
+      0.9,
+      Paint()..color = Colors.white.withValues(alpha: 0.55),
+    );
     canvas.drawLine(
-      Offset(cx + 30, size.height * 0.31),
-      Offset(cx + 18, size.height * 0.50),
+      Offset(cx + 18, size.height * 0.42),
+      Offset(cx + 14, size.height * 0.45),
       Paint()
-        ..color = const Color(0xFF78350F)
-        ..strokeWidth = 3.5
+        ..color = const Color(0xFF0F172A)
+        ..strokeWidth = 2.0
         ..strokeCap = StrokeCap.round,
     );
   }
@@ -680,7 +677,7 @@ class _CharacterPainter extends CustomPainter {
     }
   }
 
-  // ── Blazer (Pro) ────────────────────────────────────────────────────────
+  // ── Blazer (Career) ─────────────────────────────────────────────────────
   void _drawBlazer(Canvas canvas, Size size, double cx) {
     final blazerPaint = Paint()
       ..shader =
@@ -738,7 +735,7 @@ class _CharacterPainter extends CustomPainter {
     canvas.drawCircle(Offset(cx, size.height * 0.53), 2, btnPaint);
   }
 
-  // ── Watch (Pro) ──────────────────────────────────────────────────────────
+  // ── Watch (Career) ──────────────────────────────────────────────────────
   void _drawWatch(Canvas canvas, Size size, double cx) {
     // Band
     canvas.drawRect(

@@ -1,19 +1,12 @@
-# Firebase Setup Guide — Adultin
+# Firebase Setup Guide — Adulti
+
+Deprecated. Use [firebase_instructions.md](firebase_instructions.md) for the current app-specific setup steps.
 
 This document is the complete blueprint for wiring real Firebase (Auth + Firestore)
 into the Adultin app. The mock database layer was designed to make this a
 **near-zero-friction swap**. Follow these steps in order.
 
----
-
 ## Prerequisites
-
-- A Google account
-- Flutter SDK >= 3.10 installed
-- Firebase CLI installed: `npm install -g firebase-tools`
-- FlutterFire CLI installed: `dart pub global activate flutterfire_cli`
-
----
 
 ## Step 1 — Create a Firebase Project
 
@@ -22,15 +15,13 @@ into the Adultin app. The mock database layer was designed to make this a
 3. Disable Google Analytics (optional for MVP)
 4. Click **Continue** until the project is created
 
----
-
 ## Step 2 — Register Your App Platforms
 
 ### Android
 
 1. In the Firebase Console → Project Overview → Add app → Android
-2. Use the package name from `android/app/build.gradle.kts`: `com.example.adultin`
-   - Rename it to something like `com.yourdomain.adultin` for production
+2. Use the package name from `android/app/build.gradle.kts`: `com.example.adulti`
+  - Rename it to something like `com.yourdomain.adulti` for production
 3. Download `google-services.json` → place it at `android/app/google-services.json`
 
 ### iOS
@@ -39,8 +30,6 @@ into the Adultin app. The mock database layer was designed to make this a
 2. Use the Bundle ID from `ios/Runner/Info.plist` (default: `com.example.adultin`)
 3. Download `GoogleService-Info.plist` → place it inside `ios/Runner/`
 4. Open Xcode → drag the plist into the Runner target (ensure "Copy items if needed" is checked)
-
----
 
 ## Step 3 — Configure FlutterFire
 
@@ -51,8 +40,6 @@ flutterfire configure --project=adultin-prod
 ```
 
 This generates `lib/firebase_options.dart` automatically.
-
----
 
 ## Step 4 — Add Firebase Packages
 
@@ -69,8 +56,6 @@ Then run:
 ```bash
 flutter pub get
 ```
-
----
 
 ## Step 5 — Initialize Firebase in main.dart
 
@@ -92,8 +77,6 @@ void main() async {
   );
 }
 ```
-
----
 
 ## Step 6 — Create FirestoreDatabaseService
 
@@ -122,8 +105,6 @@ class FirestoreDatabaseService implements DatabaseService {
 }
 ```
 
----
-
 ## Step 7 — Swap the Database Provider
 
 In `lib/providers/user_stats_provider.dart`, replace:
@@ -141,8 +122,6 @@ final _db = FirestoreDatabaseService();
 ```
 
 That's the **only change needed** in the entire provider/model layer.
-
----
 
 ## Step 8 — Enable Anonymous Auth (Recommended for MVP)
 
@@ -170,8 +149,6 @@ final authUidProvider = StreamProvider<String?>((ref) {
 
 Then in `UserStatsNotifier`, inject the uid as a dependency rather than using the constant.
 
----
-
 ## Step 9 — Firestore Security Rules
 
 In Firebase Console → Firestore → Rules, paste:
@@ -189,8 +166,6 @@ service cloud.firestore {
 
 This ensures each user can only read/write their own data.
 
----
-
 ## Step 10 — Build a Proper Auth Screen (Future)
 
 When you're ready to replace anonymous auth with real accounts, create:
@@ -204,8 +179,6 @@ lib/features/auth/
 
 The `AppRouter` gains two new routes (`/login`, `/register`) and `auth_gate.dart`
 becomes the `initialRoute`.
-
----
 
 ## Summary of Files to Touch
 

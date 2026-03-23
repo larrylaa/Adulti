@@ -32,10 +32,10 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
   bool _hasTriggeredVaultHaptic = false;
 
   static const _subStepTitles = [
-    'Operating Funds',
-    'The Vault',
-    'The Shadow',
-    'The Time Machine',
+    'Checking',
+    'Emergency Fund',
+    'Debt',
+    'Investments',
   ];
   static const _subStepIcons = [
     '\u{1F4B5}',
@@ -129,7 +129,7 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
               ),
               const SizedBox(height: 10),
               Text(
-                    'Load your gear.',
+                    'Set up your finances.',
                     style: Theme.of(context).textTheme.displaySmall,
                   )
                   .animate(key: ValueKey('ch2-title-$_subStep'))
@@ -210,7 +210,7 @@ class _Chapter2LoadoutState extends ConsumerState<Chapter2Loadout> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        isLast ? 'VIEW BATTLE STATS' : 'NEXT',
+                        isLast ? 'VIEW SUMMARY' : 'NEXT',
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -265,7 +265,7 @@ class _SubStepDesk extends ConsumerWidget {
         ).animate().fadeIn(duration: 300.ms, delay: 60.ms),
         const SizedBox(height: 16),
         Text(
-          'This is your everyday spending money — bills, groceries, gas. The Desk on stage shows your cash flow. Keep 1-3 months of expenses here.',
+          'This is your everyday spending money — bills, groceries, gas. Keep enough here for short-term spending and bills.',
           style: GoogleFonts.inter(
             fontSize: 13,
             color: AppColors.textSecondary,
@@ -325,41 +325,14 @@ class _SubStepVault extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Checkbox(
-                    value: stats.savingsGoalUnknown,
-                    onChanged: (v) =>
-                        notifier.setSavingsGoalUnknown(v ?? false),
-                    activeColor: AppColors.shadowBlue,
-                  ),
-                  Expanded(
-                    child: Text(
-                      "I don't know my goal yet",
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              AnimatedOpacity(
-                opacity: stats.savingsGoalUnknown ? 0.5 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                child: IgnorePointer(
-                  ignoring: stats.savingsGoalUnknown,
-                  child: Focus(
-                    onFocusChange: (hasFocus) {
-                      if (hasFocus) onFocus();
-                    },
-                    child: CurrencyTextField(
-                      label: 'Savings Goal',
-                      initialValue: stats.savingsGoal,
-                      onChanged: (v) => notifier.setSavingsGoal(v),
-                    ),
-                  ),
+              Focus(
+                onFocusChange: (hasFocus) {
+                  if (hasFocus) onFocus();
+                },
+                child: CurrencyTextField(
+                  label: 'Savings Goal',
+                  initialValue: stats.savingsGoal,
+                  onChanged: (v) => notifier.setSavingsGoal(v),
                 ),
               ),
               const SizedBox(height: 16),
@@ -381,7 +354,7 @@ class _SubStepVault extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Vault Sealed',
+                        'Savings goal reached',
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -420,7 +393,7 @@ class _SubStepShadow extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
       children: [
         Text(
-          'The Shadow is the ghost of your debt — credit cards, loans, anything you owe. It grows stronger the more you owe, haunting your finances until you pay it off.',
+          'Debt includes credit cards, loans, or anything you owe. The goal is to keep it organized and reduce it over time.',
           style: GoogleFonts.inter(
             fontSize: 13,
             color: AppColors.textSecondary,
@@ -471,7 +444,7 @@ class _SubStepShadow extends ConsumerWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Add debt entry',
+                      'Add debt item',
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: AppColors.textSecondary,
@@ -489,7 +462,7 @@ class _SubStepShadow extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total Shadow Power',
+                      'Total debt',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -530,7 +503,7 @@ class _SubStepWatch extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
       children: [
         Text(
-          'The Time Machine represents your investments — retirement accounts and brokerage accounts that grow over time through compound interest.',
+          'Investments are accounts that can grow over time. Retirement accounts and brokerage accounts both belong here.',
           style: GoogleFonts.inter(
             fontSize: 13,
             color: AppColors.textSecondary,
@@ -547,7 +520,7 @@ class _SubStepWatch extends ConsumerWidget {
             ),
             Expanded(
               child: Text(
-                "I don't know what these are yet",
+                "I don't know these yet",
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   color: AppColors.textSecondary,

@@ -21,7 +21,10 @@ class Chapter1ClassSelection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Who are you?', style: Theme.of(context).textTheme.displaySmall)
+          Text(
+                'Choose your starting path.',
+                style: Theme.of(context).textTheme.displaySmall,
+              )
               .animate()
               .fadeIn(duration: 400.ms)
               .slideY(
@@ -34,7 +37,7 @@ class Chapter1ClassSelection extends ConsumerWidget {
           const SizedBox(height: 4),
 
           Text(
-            'Pick your class to initialize your character.',
+            'Choose the path that best fits where you are right now.',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
@@ -114,7 +117,7 @@ class _ClassTile extends StatelessWidget {
   String get _icon {
     switch (cls) {
       case CharacterClass.student:
-        return '🎒';
+        return '📘';
       case CharacterClass.graduate:
         return '🎓';
       case CharacterClass.professional:

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../../app/theme.dart';
 import '../../widgets/tactical_stage/tactical_stage.dart';
 import 'chapter0_gender.dart';
 import 'chapter1_class_selection.dart';
 import 'chapter2_loadout.dart';
-import 'chapter3_roi_oracle.dart';
+import 'chapter3_income_check.dart';
 
 class OnboardingShell extends StatefulWidget {
   const OnboardingShell({super.key});
@@ -56,18 +57,15 @@ class _OnboardingShellState extends State<OnboardingShell> {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: Column(
             children: [
-              // ── Top 40%: Tactical Stage ────────────────────────────
               Expanded(
                 flex: 2,
                 child: ClipRect(
                   child: Stack(
                     children: [
                       const TacticalStage(),
-                      // Chapter progress indicator
                       Positioned(
                         top: 12,
                         left: 0,
@@ -78,13 +76,10 @@ class _OnboardingShellState extends State<OnboardingShell> {
                   ),
                 ),
               ),
-
               Container(
                 height: 1,
                 color: AppColors.navy.withValues(alpha: 0.06),
               ),
-
-              // ── Bottom 60%: Mission Console ────────────────────────
               Expanded(
                 flex: 3,
                 child: PageView(
@@ -94,7 +89,7 @@ class _OnboardingShellState extends State<OnboardingShell> {
                     Chapter0Gender(onNext: _nextPage),
                     Chapter1ClassSelection(onNext: _nextPage),
                     Chapter2Loadout(onNext: _nextPage, onBack: _prevPage),
-                    Chapter3RoiOracle(onBack: _prevPage),
+                    Chapter3IncomeCheck(onBack: _prevPage),
                   ],
                 ),
               ),

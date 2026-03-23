@@ -9,9 +9,9 @@ import '../../providers/user_stats_provider.dart';
 import '../../widgets/shared/bento_card.dart';
 import '../../widgets/shared/currency_text_field.dart';
 
-class Chapter3RoiOracle extends ConsumerWidget {
+class Chapter3IncomeCheck extends ConsumerWidget {
   final VoidCallback onBack;
-  const Chapter3RoiOracle({super.key, required this.onBack});
+  const Chapter3IncomeCheck({super.key, required this.onBack});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,7 +21,10 @@ class Chapter3RoiOracle extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
       children: [
-        Text('The ROI Oracle.', style: Theme.of(context).textTheme.displaySmall)
+        Text(
+              'Income and next steps.',
+              style: Theme.of(context).textTheme.displaySmall,
+            )
             .animate()
             .fadeIn(duration: 300.ms)
             .slideY(
@@ -33,7 +36,7 @@ class Chapter3RoiOracle extends ConsumerWidget {
 
         const SizedBox(height: 4),
         Text(
-          'Tell the Oracle what you\'re worth. It will decide your fate.',
+          'Share your annual income so the app can suggest a better next step.',
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
@@ -52,10 +55,10 @@ class Chapter3RoiOracle extends ConsumerWidget {
 
         const SizedBox(height: 20),
 
-        // ── Combat Summary Card ───────────────────────────────────
+        // ── Income Summary Card ───────────────────────────────────
         if (hasSalary)
-          _CombatSummaryCard(
-                characterClass: stats.characterClass?.displayName ?? 'Hero',
+          _IncomeSummaryCard(
+                characterClass: stats.characterClass?.displayName ?? 'Career',
                 monthlySalary: stats.monthlySalary,
                 totalDebt: stats.totalDebt,
                 monthsToDebtFree: stats.monthsToDebtFree,
@@ -70,27 +73,29 @@ class Chapter3RoiOracle extends ConsumerWidget {
                 curve: Curves.easeOutCubic,
               )
         else
-          _OraclePlaceholder().animate().fadeIn(
+          _IncomePlaceholder().animate().fadeIn(
             duration: 400.ms,
             delay: 100.ms,
           ),
 
         const SizedBox(height: 28),
 
-        // ── Mint Button ───────────────────────────────────────────
+        // ── Finish Button ─────────────────────────────────────────
         SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () async {
-                  await HapticFeedback.heavyImpact();
-                  await ref.read(userStatsProvider.notifier).mint();
-                  if (context.mounted) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRouter.dashboard,
-                    );
-                  }
-                },
+                onPressed: hasSalary
+                    ? () async {
+                        await HapticFeedback.heavyImpact();
+                        await ref.read(userStatsProvider.notifier).mint();
+                        if (context.mounted) {
+                          Navigator.pushReplacementNamed(
+                            context,
+                            AppRouter.dashboard,
+                          );
+                        }
+                      }
+                    : null,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.success,
                   padding: const EdgeInsets.symmetric(vertical: 20),
@@ -102,10 +107,9 @@ class Chapter3RoiOracle extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('⚡', style: TextStyle(fontSize: 18)),
                     const SizedBox(width: 10),
                     Text(
-                      'MINT CHARACTER',
+                      'FINISH SETUP',
                       style: GoogleFonts.spaceGrotesk(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -146,14 +150,14 @@ class Chapter3RoiOracle extends ConsumerWidget {
   }
 }
 
-class _CombatSummaryCard extends StatelessWidget {
+class _IncomeSummaryCard extends StatelessWidget {
   final String characterClass;
   final double monthlySalary;
   final double totalDebt;
   final int monthsToDebtFree;
   final double debtToIncomeRatio;
 
-  const _CombatSummaryCard({
+  const _IncomeSummaryCard({
     required this.characterClass,
     required this.monthlySalary,
     required this.totalDebt,
@@ -163,15 +167,15 @@ class _CombatSummaryCard extends StatelessWidget {
 
   String get _verdict {
     if (totalDebt <= 0) {
-      return '$characterClass is DEBT-FREE. Final form unlocked.';
+      return '$characterClass is debt-free. Keep building savings and investing.';
     }
     if (debtToIncomeRatio < 0.15) {
-      return '$characterClass deals CRITICAL DAMAGE. Shadow Exorcism in $monthsToDebtFree months.';
+      return '$characterClass is on a strong path. Debt-free in about $monthsToDebtFree months.';
     }
     if (debtToIncomeRatio < 0.40) {
-      return '$characterClass is holding the line. Shadow fades in $monthsToDebtFree months.';
+      return '$characterClass is making progress. Keep the payoff plan steady.';
     }
-    return '$characterClass is outnumbered. Focus all resources — Shadow Exorcism in $monthsToDebtFree months.';
+    return '$characterClass needs a tighter plan. Focus on the highest-impact debt first.';
   }
 
   Color get _verdictColor {
@@ -194,7 +198,7 @@ class _CombatSummaryCard extends StatelessWidget {
               const Text('⚔️', style: TextStyle(fontSize: 16)),
               const SizedBox(width: 8),
               Text(
-                'COMBAT SUMMARY',
+                'INCOME CHECK',
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -209,23 +213,21 @@ class _CombatSummaryCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           _StatRow(
-            label: 'Attack Power',
+            label: 'Monthly income',
             value: '\$${monthlySalary.toStringAsFixed(0)}/mo',
             icon: '⚡',
             valueColor: AppColors.success,
           ),
           const SizedBox(height: 12),
           _StatRow(
-            label: 'Shadow HP',
-            value: totalDebt > 0
-                ? '\$${totalDebt.toStringAsFixed(0)}'
-                : 'No Shadow',
+            label: 'Debt',
+            value: totalDebt > 0 ? '\$${totalDebt.toStringAsFixed(0)}' : 'None',
             icon: '👻',
             valueColor: totalDebt > 0 ? AppColors.warning : AppColors.textMuted,
           ),
           const SizedBox(height: 12),
           _StatRow(
-            label: 'Debt-to-Income',
+            label: 'Debt-to-income',
             value: '${(debtToIncomeRatio * 100).toStringAsFixed(0)}%',
             icon: '📊',
             valueColor: debtToIncomeRatio > 0.3
@@ -245,12 +247,12 @@ class _CombatSummaryCard extends StatelessWidget {
               children: [
                 Text(
                   totalDebt <= 0
-                      ? '🏆'
+                      ? '✅'
                       : debtToIncomeRatio < 0.15
-                      ? '💥'
+                      ? '✅'
                       : debtToIncomeRatio < 0.40
                       ? '⚠️'
-                      : '🔴',
+                      : '⚪',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(width: 10),
@@ -315,17 +317,17 @@ class _StatRow extends StatelessWidget {
   }
 }
 
-class _OraclePlaceholder extends StatelessWidget {
+class _IncomePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BentoCard(
       backgroundColor: AppColors.navy.withValues(alpha: 0.03),
       child: Column(
         children: [
-          const Text('🔮', style: TextStyle(fontSize: 36)),
+          const Text('📈', style: TextStyle(fontSize: 36)),
           const SizedBox(height: 12),
           Text(
-            'The Oracle awaits your salary.',
+            'Ready to review your income.',
             style: GoogleFonts.spaceGrotesk(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -334,7 +336,7 @@ class _OraclePlaceholder extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Enter a number above to reveal your fate.',
+            'Enter your annual salary to continue.',
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textMuted),
           ),
         ],

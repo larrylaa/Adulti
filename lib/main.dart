@@ -1,26 +1,27 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/theme.dart';
 import 'app/router.dart';
 
-void main() {
-  runApp(
-    const ProviderScope(
-      child: AdultinApp(),
-    ),
-  );
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  runApp(const ProviderScope(child: AdultiApp()));
 }
 
-class AdultinApp extends StatelessWidget {
-  const AdultinApp({super.key});
+class AdultiApp extends StatelessWidget {
+  const AdultiApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Adultin',
+      title: 'Adulti',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      initialRoute: AppRouter.splash,
+      initialRoute: AppRouter.auth,
+      onGenerateRoute: (settings) => AppRouter.onGenerateRoute(settings),
       routes: AppRouter.routes,
     );
   }

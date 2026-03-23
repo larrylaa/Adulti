@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../app/theme.dart';
-import '../../app/router.dart';
+import '../../models/debt_entry.dart';
+import '../../models/user_stats.dart';
 import '../../providers/user_stats_provider.dart';
-import '../../widgets/tactical_stage/tactical_stage.dart';
-import '../../widgets/shared/mission_card.dart';
 import '../../widgets/shared/bento_card.dart';
+import '../../widgets/shared/currency_text_field.dart';
+import '../../widgets/shared/debt_list_entry.dart';
+import '../../widgets/tactical_stage/tactical_stage.dart';
 
 class DashboardScreen extends ConsumerWidget {
-  const DashboardScreen({super.key});
+  final VoidCallback onOpenRoadmap;
+
+  const DashboardScreen({super.key, required this.onOpenRoadmap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,32 +23,15 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () =>
-            Navigator.pushReplacementNamed(context, AppRouter.onboarding),
-        backgroundColor: AppColors.navy,
-        icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
-        label: Text(
-          'Edit Stats',
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        elevation: 2,
-      ),
       body: SafeArea(
         child: Column(
           children: [
-            // ── Top 40%: Tactical Stage ──────────────────────────
             Expanded(
               flex: 2,
               child: ClipRect(
                 child: Stack(
                   children: [
                     const TacticalStage(),
-                    // Top bar with name + class
                     Positioned(
                       top: 12,
                       left: 16,
@@ -56,60 +44,153 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
             Container(height: 1, color: AppColors.navy.withValues(alpha: 0.06)),
-
-            // ── Bottom 60%: Mission Console ──────────────────────
             Expanded(
               flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                              'Priority Queue',
-                              style: Theme.of(context).textTheme.headlineMedium,
-                            )
-                            .animate()
-                            .fadeIn(duration: 400.ms)
-                            .slideY(begin: 0.2, end: 0, duration: 400.ms),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Your active missions, ranked by impact.',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppColors.textSecondary),
-                        ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
-                        const SizedBox(height: 16),
-
-                        // ── Quick Stats Strip ─────────────────────
-                        _QuickStatsStrip(
-                          savings: stats.savings,
-                          checking: stats.checking,
-                          totalDebt: stats.totalDebt,
-                        ).animate().fadeIn(duration: 400.ms, delay: 120.ms),
-
-                        const SizedBox(height: 16),
-                      ],
+                  Text('Home', style: Theme.of(context).textTheme.displaySmall)
+                      .animate()
+                      .fadeIn(duration: 400.ms)
+                      .slideY(begin: 0.2, end: 0, duration: 400.ms),
+                  const SizedBox(height: 4),
+                  Text(
+                    'A quick look at where you are right now.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
                     ),
-                  ),
-
-                  // Mission Cards List
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-                      itemCount: stats.priorityMissions.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
-                      itemBuilder: (context, i) => MissionCard(
-                        mission: stats.priorityMissions[i],
-                        animationDelay: 180 + i * 80,
+                  ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
+                  const SizedBox(height: 12),
+                  _QuickFinanceRow(
+                    first: _QuickFinanceCard(
+                      label: 'Checking',
+                      value: _formatCurrency(stats.checking),
+                      subtitle: stats.checking > 500
+                          ? 'Buffer looks healthy'
+                          : 'Build your cash buffer',
+                      icon: Icons.account_balance_wallet_rounded,
+                      accent: AppColors.navy,
+                      onTap: () => _openQuickSheet(
+                        context,
+                        _QuickFinanceSection.checking,
                       ),
                     ),
-                  ),
+                    second: _QuickFinanceCard(
+                      label: 'Savings',
+                      value: _formatCurrency(stats.savings),
+                      subtitle: 'Goal ${_formatCurrency(stats.savingsGoal)}',
+                      icon: Icons.savings_rounded,
+                      accent: AppColors.success,
+                      onTap: () => _openQuickSheet(
+                        context,
+                        _QuickFinanceSection.savings,
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 120.ms),
+                  const SizedBox(height: 10),
+                  _QuickFinanceRow(
+                    first: _QuickFinanceCard(
+                      label: 'Debt',
+                      value: stats.totalDebt > 0
+                          ? _formatCurrency(stats.totalDebt)
+                          : 'None',
+                      subtitle: stats.totalDebt > 0
+                          ? '${stats.debts.length} item${stats.debts.length == 1 ? '' : 's'}'
+                          : 'No balances recorded',
+                      icon: Icons.trending_down_rounded,
+                      accent: stats.totalDebt > 0
+                          ? AppColors.warning
+                          : AppColors.textMuted,
+                      onTap: () =>
+                          _openQuickSheet(context, _QuickFinanceSection.debt),
+                    ),
+                    second: _QuickFinanceCard(
+                      label: 'Investments',
+                      value: stats.totalInvestments > 0
+                          ? _formatCurrency(stats.totalInvestments)
+                          : 'None',
+                      subtitle: stats.anyInvestmentActive
+                          ? 'Roth, 401(k), or brokerage'
+                          : 'Set up retirement next',
+                      icon: Icons.show_chart_rounded,
+                      accent: AppColors.navyLight,
+                      onTap: () => _openQuickSheet(
+                        context,
+                        _QuickFinanceSection.investments,
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 120.ms),
+                  const SizedBox(height: 14),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onOpenRoadmap,
+                      borderRadius: BorderRadius.circular(16),
+                      child: BentoCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Your next step',
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.route_rounded,
+                                  color: AppColors.navy,
+                                  size: 18,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Tap to open Roadmap.',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                height: 1.45,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            if (stats.activeRoadmapSteps.isEmpty)
+                              Text(
+                                'You are all caught up for now.',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  height: 1.5,
+                                  color: AppColors.textSecondary,
+                                ),
+                              )
+                            else
+                              Column(
+                                children: stats.activeRoadmapSteps
+                                    .take(2)
+                                    .map(
+                                      (step) => Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
+                                        child: _RoadmapStepRow(
+                                          title: step.title,
+                                          actionLabel: step.actionLabel,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 300.ms, delay: 160.ms),
                 ],
               ),
             ),
@@ -144,7 +225,7 @@ class _DashboardTopBar extends StatelessWidget {
             ],
           ),
           child: Text(
-            characterClass != null ? '🎮 ${characterClass!}' : '🎮 Hero',
+            characterClass != null ? characterClass! : 'Hero',
             style: GoogleFonts.spaceGrotesk(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -181,100 +262,432 @@ class _DashboardTopBar extends StatelessWidget {
   }
 }
 
-class _QuickStatsStrip extends StatelessWidget {
-  final double savings;
-  final double checking;
-  final double totalDebt;
+enum _QuickFinanceSection { checking, savings, debt, investments }
 
-  const _QuickStatsStrip({
-    required this.savings,
-    required this.checking,
-    required this.totalDebt,
+void _openQuickSheet(BuildContext context, _QuickFinanceSection section) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _FinanceQuickSheet(section: section),
+  );
+}
+
+class _QuickFinanceCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _QuickFinanceCard({
+    required this.label,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.accent,
+    required this.onTap,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: BentoCard(
+          borderColor: accent.withValues(alpha: 0.2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 18, color: accent),
+                  const Spacer(),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: AppColors.textMuted,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: accent,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  height: 1.35,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickFinanceRow extends StatelessWidget {
+  final Widget first;
+  final Widget second;
+
+  const _QuickFinanceRow({required this.first, required this.second});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _MiniStatCard(
-          label: 'Vault',
-          value: _fmt(savings),
-          color: AppColors.success,
-          icon: '🔒',
-        ),
-        const SizedBox(width: 8),
-        _MiniStatCard(
-          label: 'Operating',
-          value: _fmt(checking),
-          color: AppColors.navy,
-          icon: '💵',
-        ),
-        const SizedBox(width: 8),
-        _MiniStatCard(
-          label: 'Shadow',
-          value: totalDebt > 0 ? _fmt(totalDebt) : 'None',
-          color: totalDebt > 0 ? AppColors.warning : AppColors.textMuted,
-          icon: '👻',
-        ),
+        Expanded(child: first),
+        const SizedBox(width: 10),
+        Expanded(child: second),
       ],
     );
   }
-
-  String _fmt(double v) {
-    if (v >= 1000000) return '\$${(v / 1000000).toStringAsFixed(1)}M';
-    if (v >= 1000) return '\$${(v / 1000).toStringAsFixed(1)}K';
-    return '\$${v.toStringAsFixed(0)}';
-  }
 }
 
-class _MiniStatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  final String icon;
+class _RoadmapStepRow extends StatelessWidget {
+  final String title;
+  final String actionLabel;
 
-  const _MiniStatCard({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.icon,
-  });
+  const _RoadmapStepRow({required this.title, required this.actionLabel});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: BentoCard(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        borderColor: color.withValues(alpha: 0.2),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.navy.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.navy.withValues(alpha: 0.10)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            actionLabel,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 11.5,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FinanceQuickSheet extends ConsumerWidget {
+  final _QuickFinanceSection section;
+
+  const _FinanceQuickSheet({required this.section});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(userStatsProvider);
+    final notifier = ref.read(userStatsProvider.notifier);
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
+        child: SingleChildScrollView(
+          child: BentoCard(
+            borderRadius: 24,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(icon, style: const TextStyle(fontSize: 12)),
-                const SizedBox(width: 4),
+                Center(
+                  child: Container(
+                    width: 42,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.border.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _titleForSection(section),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 Text(
-                  label,
+                  _subtitleForSection(section),
                   style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: AppColors.textMuted,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                    height: 1.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _buildSection(stats, notifier),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Done'),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildSection(UserStats stats, UserStatsNotifier notifier) {
+    switch (section) {
+      case _QuickFinanceSection.checking:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CurrencyTextField(
+              label: 'Checking balance',
+              initialValue: stats.checking,
+              autofocus: true,
+              onChanged: notifier.setChecking,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Use this for cash you can spend immediately.',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                height: 1.45,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        );
+      case _QuickFinanceSection.savings:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CurrencyTextField(
+              label: 'Savings balance',
+              initialValue: stats.savings,
+              autofocus: true,
+              onChanged: notifier.setSavings,
+            ),
+            const SizedBox(height: 12),
+            CurrencyTextField(
+              label: 'Savings goal',
+              initialValue: stats.savingsGoal,
+              onChanged: notifier.setSavingsGoal,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'The goal stays visible here so you can see progress quickly.',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                height: 1.45,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        );
+      case _QuickFinanceSection.debt:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              stats.totalDebt > 0
+                  ? 'Total debt: ${_formatCurrency(stats.totalDebt)}'
+                  : 'No debt recorded yet.',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (stats.debts.isEmpty)
+              Text(
+                'Add a debt entry to track balances, labels, and payoff order.',
+                style: GoogleFonts.inter(
+                  fontSize: 12.5,
+                  height: 1.45,
+                  color: AppColors.textSecondary,
+                ),
+              )
+            else
+              ...stats.debts.map(
+                (debt) => DebtListEntry(
+                  entry: debt,
+                  onChanged: notifier.updateDebt,
+                  onDelete: () => notifier.removeDebt(debt.id),
+                ),
+              ),
+            TextButton.icon(
+              onPressed: () => notifier.addDebt(
+                DebtEntry(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  type: DebtType.creditCard,
+                  label: '',
+                  amount: 0,
+                ),
+              ),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Add debt entry'),
+            ),
+          ],
+        );
+      case _QuickFinanceSection.investments:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Roth IRA'),
+              value: stats.hasRothIra,
+              onChanged: notifier.setHasRothIra,
+            ),
+            if (stats.hasRothIra) ...[
+              CurrencyTextField(
+                label: 'Roth IRA balance',
+                initialValue: stats.rothIraBalance,
+                onChanged: notifier.setRothIraBalance,
+              ),
+              const SizedBox(height: 12),
+            ],
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('401(k)'),
+              value: stats.has401k,
+              onChanged: notifier.setHas401k,
+            ),
+            if (stats.has401k) ...[
+              CurrencyTextField(
+                label: '401(k) balance',
+                initialValue: stats.balance401k,
+                onChanged: notifier.set401kBalance,
+              ),
+              const SizedBox(height: 12),
+            ],
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Brokerage account'),
+              value: stats.hasBrokerage,
+              onChanged: notifier.setHasBrokerage,
+            ),
+            if (stats.hasBrokerage) ...[
+              CurrencyTextField(
+                label: 'Brokerage balance',
+                initialValue: stats.brokerageBalance,
+                onChanged: notifier.setBrokerageBalance,
+              ),
+              const SizedBox(height: 12),
+            ],
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('I do not know these yet'),
+              value: stats.investmentsUnknown,
+              onChanged: notifier.setInvestmentsUnknown,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Mark what exists now; the roadmap will adapt as the balances grow.',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                height: 1.45,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        );
+    }
+  }
+
+  String _titleForSection(_QuickFinanceSection section) {
+    switch (section) {
+      case _QuickFinanceSection.checking:
+        return 'Checking';
+      case _QuickFinanceSection.savings:
+        return 'Savings';
+      case _QuickFinanceSection.debt:
+        return 'Debt';
+      case _QuickFinanceSection.investments:
+        return 'Investments';
+    }
+  }
+
+  String _subtitleForSection(_QuickFinanceSection section) {
+    switch (section) {
+      case _QuickFinanceSection.checking:
+        return 'Update the cash you can use right away.';
+      case _QuickFinanceSection.savings:
+        return 'Keep the balance and target together.';
+      case _QuickFinanceSection.debt:
+        return 'Track balances, labels, and payoff order.';
+      case _QuickFinanceSection.investments:
+        return 'Turn on the accounts you already use and enter balances.';
+    }
+  }
+}
+
+String _formatCurrency(double value) {
+  if (value >= 1000000) return '\$${(value / 1000000).toStringAsFixed(1)}M';
+  if (value >= 1000) return '\$${(value / 1000).toStringAsFixed(1)}K';
+  return '\$${value.toStringAsFixed(0)}';
 }

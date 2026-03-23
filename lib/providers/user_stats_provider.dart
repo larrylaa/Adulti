@@ -1,33 +1,43 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_stats.dart';
 import '../models/debt_entry.dart';
-import '../services/mock_database_service.dart';
+import '../services/firestore_database_service.dart';
 
-// The hardcoded uid used until real Firebase Auth is wired in.
-const String kMockUid = 'mock_uid';
-
-final _db = MockDatabaseService();
+final _db = FirestoreDatabaseService();
 
 final userStatsProvider = StateNotifierProvider<UserStatsNotifier, UserStats>((
   ref,
 ) {
-  final notifier = UserStatsNotifier();
+  final notifier = UserStatsNotifier(FirebaseAuth.instance.currentUser?.uid);
   notifier.loadFromDb();
   return notifier;
 });
 
 class UserStatsNotifier extends StateNotifier<UserStats> {
-  UserStatsNotifier() : super(const UserStats());
+  UserStatsNotifier(this._uid) : super(const UserStats());
+
+  final String? _uid;
 
   Future<void> loadFromDb() async {
-    final map = await _db.getUserStats(kMockUid);
+    final uid = _uid;
+    if (uid == null || uid.isEmpty) {
+      return;
+    }
+
+    final map = await _db.getUserStats(uid);
     if (map != null) {
       state = UserStats.fromMap(map);
     }
   }
 
   Future<void> _persist() async {
-    await _db.updateUserStats(kMockUid, state.toMap());
+    final uid = _uid;
+    if (uid == null || uid.isEmpty) {
+      return;
+    }
+
+    await _db.updateUserStats(uid, state.toMap());
   }
 
   Future<void> setName(String? n) async {
@@ -126,6 +136,35 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
 
   Future<void> setCreditScoreStatus(String? value) async {
     state = state.copyWith(creditScoreStatus: value);
+    await _persist();
+  }
+
+  Future<void> completeRoadmapStep(String stepId) async {
+    if (state.completedRoadmapStepIds.contains(stepId)) {
+      return;
+    }
+
+    state = state.copyWith(
+      completedRoadmapStepIds: [...state.completedRoadmapStepIds, stepId],
+    );
+    await _persist();
+  }
+
+  Future<void> uncompleteRoadmapStep(String stepId) async {
+    if (!state.completedRoadmapStepIds.contains(stepId)) {
+      return;
+    }
+
+    state = state.copyWith(
+      completedRoadmapStepIds: state.completedRoadmapStepIds
+          .where((id) => id != stepId)
+          .toList(),
+    );
+    await _persist();
+  }
+
+  Future<void> resetRoadmapProgress() async {
+    state = state.copyWith(completedRoadmapStepIds: const []);
     await _persist();
   }
 
