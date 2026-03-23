@@ -32,7 +32,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     try {
       final stats = await FirestoreDatabaseService().getUserStats(uid);
-      final hasCharacter = stats != null &&
+      final hasCharacter =
+          stats != null &&
           (stats['hasMinted'] == true ||
               (stats['characterClass'] != null && stats['gender'] != null));
 
@@ -138,50 +139,50 @@ class _SplashScreenState extends State<SplashScreen> {
                 )
               else
                 SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => Navigator.pushReplacementNamed(
-                      context,
-                      AppRouter.onboarding,
-                    ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.navy,
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'GET STARTED',
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 1.2,
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () => Navigator.pushReplacementNamed(
+                          context,
+                          AppRouter.onboarding,
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.navy,
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 20,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'GET STARTED',
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 500.ms, delay: 1000.ms)
+                    .slideY(
+                      begin: 0.4,
+                      end: 0,
+                      duration: 500.ms,
+                      delay: 1000.ms,
+                      curve: Curves.easeOutCubic,
                     ),
-                  ),
-                )
-                  .animate()
-                  .fadeIn(duration: 500.ms, delay: 1000.ms)
-                  .slideY(
-                    begin: 0.4,
-                    end: 0,
-                    duration: 500.ms,
-                    delay: 1000.ms,
-                    curve: Curves.easeOutCubic,
-                  ),
 
               const SizedBox(height: 12),
 
