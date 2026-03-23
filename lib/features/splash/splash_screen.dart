@@ -1,11 +1,54 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/theme.dart';
 import '../../app/router.dart';
+import '../../services/firestore_database_service.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  bool _isCheckingProfile = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkProfile();
+  }
+
+  Future<void> _checkProfile() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      if (!mounted) return;
+      setState(() => _isCheckingProfile = false);
+      return;
+    }
+
+    try {
+      final stats = await FirestoreDatabaseService().getUserStats(uid);
+      final hasCharacter = stats != null &&
+          (stats['hasMinted'] == true ||
+              (stats['characterClass'] != null && stats['gender'] != null));
+
+      if (!mounted) return;
+
+      if (hasCharacter) {
+        Navigator.pushReplacementNamed(context, AppRouter.dashboard);
+        return;
+      }
+    } catch (_) {
+      // Fall through to the splash screen if profile loading fails.
+    }
+
+    if (!mounted) return;
+    setState(() => _isCheckingProfile = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +114,6 @@ class SplashScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Tagline
               Text(
                 'Your financial life,\nmade clearer.',
                 textAlign: TextAlign.center,
@@ -85,48 +127,52 @@ class SplashScreen extends StatelessWidget {
 
               const Spacer(flex: 1),
 
-              // Stats Preview Strip
               _StatsStrip().animate().fadeIn(duration: 500.ms, delay: 800.ms),
 
               const Spacer(flex: 2),
 
-              // CTA Button
-              SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () => Navigator.pushReplacementNamed(
-                        context,
-                        AppRouter.onboarding,
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.navy,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'GET STARTED',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ],
+              if (_isCheckingProfile)
+                const SizedBox(
+                  width: double.infinity,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.pushReplacementNamed(
+                      context,
+                      AppRouter.onboarding,
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.navy,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                  )
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'GET STARTED',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
                   .animate()
                   .fadeIn(duration: 500.ms, delay: 1000.ms)
                   .slideY(

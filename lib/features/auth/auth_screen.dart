@@ -133,7 +133,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
               const SizedBox(height: 8),
               Text(
-                'Sign in with a username and password to save your profile to Firebase.',
+                'Sign in to pick up where you left off in Adulti.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary,
@@ -246,7 +246,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Firebase Auth uses an internal email alias behind the username.',
+                'Your username and password keep your Adulti profile secure.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 12,

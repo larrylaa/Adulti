@@ -1,4 +1,4 @@
-package com.example.adulti
+package com.larrylaa.adulti
 
 import io.flutter.embedding.android.FlutterActivity
 
