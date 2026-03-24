@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/adultin.iml" filepath="$PROJECT_DIR$/adultin.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/adultin_android.iml" filepath="$PROJECT_DIR$/android/adultin_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/adulti.iml" filepath="$PROJECT_DIR$/adulti.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/adulti_android.iml" filepath="$PROJECT_DIR$/android/adulti_android.iml" />
     </modules>
   </component>
 </project>

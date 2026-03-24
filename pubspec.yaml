@@ -63,7 +63,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - adultinlogo.png
+    - adulti_logo.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -99,5 +99,5 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: adultinlogo.png
+  image_path: adulti_logo.png
   min_sdk_android: 21

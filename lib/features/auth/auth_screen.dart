@@ -118,7 +118,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             ],
                           ),
                           child: Image.asset(
-                            'adultinlogo.png',
+                            'adulti_logo.png',
                             fit: BoxFit.contain,
                           ),
                         )

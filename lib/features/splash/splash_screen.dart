@@ -82,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       ),
                     ),
                     padding: const EdgeInsets.all(14),
-                    child: Image.asset('adultinlogo.png', fit: BoxFit.contain),
+                    child: Image.asset('adulti_logo.png', fit: BoxFit.contain),
                   )
                   .animate()
                   .fadeIn(duration: 600.ms, delay: 200.ms)
