@@ -523,40 +523,54 @@ class _CharacterPainter extends CustomPainter {
 
   // ── Notebook (Student) ──────────────────────────────────────────────────
   void _drawNotebook(Canvas canvas, Size size, double cx) {
-    final bagRect = Rect.fromLTWH(cx + 12, size.height * 0.33, 22, 18);
+    final bookRect = Rect.fromLTWH(cx + 20, size.height * 0.44, 20, 24);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(bagRect, const Radius.circular(4)),
+      RRect.fromRectAndRadius(bookRect, const Radius.circular(3.5)),
       Paint()
         ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [const Color(0xFF93C5FD), const Color(0xFF3B82F6)],
-        ).createShader(bagRect),
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [const Color(0xFF2563EB), const Color(0xFF1D4ED8)],
+        ).createShader(bookRect),
     );
+
     canvas.drawRRect(
-      RRect.fromRectAndRadius(bagRect, const Radius.circular(4)),
+      RRect.fromRectAndRadius(bookRect, const Radius.circular(3.5)),
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.12)
+        ..color = Colors.white.withValues(alpha: 0.16)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
+        ..strokeWidth = 0.9,
+    );
+
+    // Spine strip and page edge details help the notebook read as a held book.
+    canvas.drawRect(
+      Rect.fromLTWH(cx + 21, size.height * 0.44, 3.2, 24),
+      Paint()..color = const Color(0xFF1E3A8A).withValues(alpha: 0.75),
+    );
+    canvas.drawLine(
+      Offset(cx + 39.4, size.height * 0.445),
+      Offset(cx + 39.4, size.height * 0.667),
+      Paint()
+        ..color = const Color(0xFFF8FAFC).withValues(alpha: 0.85)
+        ..strokeWidth = 1.0,
     );
 
     final linePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.35)
-      ..strokeWidth = 1;
+      ..color = Colors.white.withValues(alpha: 0.32)
+      ..strokeWidth = 0.9;
     for (int i = 0; i < 3; i++) {
-      final y = size.height * 0.335 + 4.0 + i * 4.0;
-      canvas.drawLine(Offset(cx + 15, y), Offset(cx + 30, y), linePaint);
+      final y = size.height * 0.47 + i * 4.8;
+      canvas.drawLine(Offset(cx + 25.5, y), Offset(cx + 37, y), linePaint);
     }
 
-    final tabPath = Path()
-      ..moveTo(cx + 30, size.height * 0.335)
-      ..lineTo(cx + 34, size.height * 0.335)
-      ..lineTo(cx + 34, size.height * 0.345)
-      ..lineTo(cx + 32, size.height * 0.353)
-      ..lineTo(cx + 30, size.height * 0.345)
-      ..close();
-    canvas.drawPath(tabPath, Paint()..color = const Color(0xFFF8FAFC));
+    // Fingers over the notebook edge to imply grip.
+    final fingerPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.2, -0.2),
+        colors: [_skinLight, _skinBase, _skinShadow],
+      ).createShader(Rect.fromLTWH(cx + 33, size.height * 0.50, 11, 10));
+    canvas.drawCircle(Offset(cx + 35.5, size.height * 0.52), 2.6, fingerPaint);
+    canvas.drawCircle(Offset(cx + 37.8, size.height * 0.535), 2.4, fingerPaint);
   }
 
   // ── Phone (Professional) ────────────────────────────────────────────────
