@@ -50,34 +50,35 @@ The product is built around clarity:
 
 The following screenshots are from the working app flow.
 
-![Adulti banner](demo_photos/Adulti_Banner.png)
-![Adulti logo](demo_photos/adulti_logo.png)
-
-### Authentication
-
-![Create account](demo_photos/createadulti.jpg)
-![Sign in](demo_photos/signinadulti.jpg)
-
-### Onboarding and Core Snapshot
-
-![Onboarding](demo_photos/onboarding.png)
-![Dashboard](demo_photos/UI_Dashboard.png)
-![Checking](demo_photos/checking.jpg)
-
-### Roadmap and Progress
-
-![Roadmap](demo_photos/roadmap.jpg)
-![Vault](demo_photos/vault.jpg)
-![Debt ghost](demo_photos/debtghost.jpg)
-![Time machine](demo_photos/timemachine.jpg)
-![ROI](demo_photos/roi.jpg)
-
-### Guide and Management Views
-
-![Guide 1](demo_photos/guide1.jpg)
-![Guide 2](demo_photos/guide2.jpg)
-![Guide 3](demo_photos/guide3.jpg)
-![Manage Adulti](demo_photos/manageadulti.jpg)
+<!-- markdownlint-disable MD033 -->
+<table>
+  <tr>
+    <td><img src="demo_photos/createadulti.jpg" alt="Create account" width="260"></td>
+    <td><img src="demo_photos/signinadulti.jpg" alt="Sign in" width="260"></td>
+    <td><img src="demo_photos/onboarding.png" alt="Onboarding" width="260"></td>
+  </tr>
+  <tr>
+    <td><img src="demo_photos/UI_Dashboard.png" alt="Dashboard" width="260"></td>
+    <td><img src="demo_photos/checking.jpg" alt="Checking" width="260"></td>
+    <td><img src="demo_photos/roadmap.jpg" alt="Roadmap" width="260"></td>
+  </tr>
+  <tr>
+    <td><img src="demo_photos/vault.jpg" alt="Vault" width="260"></td>
+    <td><img src="demo_photos/debtghost.jpg" alt="Debt ghost" width="260"></td>
+    <td><img src="demo_photos/timemachine.jpg" alt="Time machine" width="260"></td>
+  </tr>
+  <tr>
+    <td><img src="demo_photos/roi.jpg" alt="ROI" width="260"></td>
+    <td><img src="demo_photos/guide1.jpg" alt="Guide 1" width="260"></td>
+    <td><img src="demo_photos/guide2.jpg" alt="Guide 2" width="260"></td>
+  </tr>
+  <tr>
+    <td><img src="demo_photos/guide3.jpg" alt="Guide 3" width="260"></td>
+    <td><img src="demo_photos/manageadulti.jpg" alt="Manage Adulti" width="260"></td>
+    <td></td>
+  </tr>
+</table>
+<!-- markdownlint-enable MD033 -->
 
 ## Local Development
 
