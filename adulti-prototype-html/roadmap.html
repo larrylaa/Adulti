@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adulti - Roadmap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <div class="ios-frame">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span><i class="fa-solid fa-signal"></i> <i class="fa-solid fa-wifi"></i> <i class="fa-solid fa-battery-full"></i></span>
+    </div>
+
+    <main class="screen-scroll">
+      <section class="card soft-gradient p-4">
+        <h1 class="section-title">Roadmap</h1>
+        <p class="section-subtitle">Prioritized action plan based on your current financial state.</p>
+        <div class="mt-3 badge badge-navy"><i class="fa-solid fa-flag-checkered"></i> 3 of 8 completed</div>
+      </section>
+
+      <section class="card mt-4 p-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-slate-900">Generic Roadmap View</h2>
+          <span class="text-xs font-medium text-slate-500">Expanded</span>
+        </div>
+
+        <div class="mt-3 flow-step">
+          <div class="flex items-center gap-2 text-sm font-semibold"><i class="fa-solid fa-wallet text-[#1E3A5F]"></i> Checking</div>
+        </div>
+        <div class="flow-arrow"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="mt-1 flow-step current">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 text-sm font-semibold"><i class="fa-solid fa-credit-card text-[#22C55E]"></i> Debt</div>
+            <span class="badge badge-success">You are here</span>
+          </div>
+        </div>
+        <div class="flow-arrow"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="mt-1 flow-step">
+          <div class="flex items-center gap-2 text-sm font-semibold"><i class="fa-solid fa-piggy-bank text-[#1E3A5F]"></i> Savings</div>
+        </div>
+        <div class="flow-arrow"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="mt-1 flow-step">
+          <div class="flex items-center gap-2 text-sm font-semibold"><i class="fa-solid fa-chart-line text-[#1E3A5F]"></i> Investing</div>
+        </div>
+      </section>
+
+      <section class="card mt-4 p-4">
+        <h2 class="text-sm font-semibold text-slate-900">Current Tasks</h2>
+        <div class="mt-3 list-row">
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Pay off highest APR card</p>
+            <p class="text-xs text-slate-500">Maintain minimums on all other debts</p>
+          </div>
+          <i class="fa-regular fa-circle-check text-slate-400"></i>
+        </div>
+        <div class="list-row">
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Increase savings auto-transfer</p>
+            <p class="text-xs text-slate-500">Move to $200 per paycheck</p>
+          </div>
+          <i class="fa-regular fa-circle text-slate-300"></i>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tab-bar">
+      <div class="tab-item"><i class="fa-solid fa-house"></i>Home</div>
+      <div class="tab-item active"><i class="fa-solid fa-map"></i>Roadmap</div>
+      <div class="tab-item"><i class="fa-solid fa-book-open"></i>Guide</div>
+      <div class="tab-item"><i class="fa-solid fa-user"></i>Profile</div>
+    </nav>
+  </div>
+</body>
+</html>

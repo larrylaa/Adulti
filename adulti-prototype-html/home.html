@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adulti - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <div class="ios-frame">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span><i class="fa-solid fa-signal"></i> <i class="fa-solid fa-wifi"></i> <i class="fa-solid fa-battery-full"></i></span>
+    </div>
+
+    <main class="screen-scroll">
+      <section class="card soft-gradient p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-600">ADULTI</p>
+            <h1 class="section-title mt-1">Home</h1>
+            <p class="section-subtitle">A quick look at where your money stands today.</p>
+          </div>
+          <img class="avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80" alt="Profile">
+        </div>
+      </section>
+
+      <section class="mt-4 metric-grid">
+        <article class="metric-tile">
+          <p class="metric-label">Checking</p>
+          <p class="metric-value">$1,120.00</p>
+        </article>
+        <article class="metric-tile">
+          <p class="metric-label">Savings</p>
+          <p class="metric-value">$3,450.00</p>
+        </article>
+        <article class="metric-tile">
+          <p class="metric-label">Debt</p>
+          <p class="metric-value">$1,860.00</p>
+        </article>
+        <article class="metric-tile">
+          <p class="metric-label">Investments</p>
+          <p class="metric-value">$7,880.00</p>
+        </article>
+      </section>
+
+      <section class="card mt-4 p-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-slate-900">Emergency Fund Progress</h2>
+          <span class="badge badge-success"><i class="fa-solid fa-shield-heart"></i> 69%</span>
+        </div>
+        <div class="mt-3 h-2 rounded-full bg-slate-200">
+          <div class="h-2 rounded-full" style="width:69%; background: linear-gradient(90deg, #22C55E, #1E3A5F);"></div>
+        </div>
+        <p class="mt-2 text-xs text-slate-600">$3,450 of $5,000 target saved.</p>
+      </section>
+
+      <section class="card mt-4 p-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold text-slate-900">Your Next Step</h2>
+          <i class="fa-solid fa-location-arrow text-slate-500"></i>
+        </div>
+        <div class="mt-3 rounded-xl border border-slate-200 p-3 bg-slate-50">
+          <p class="text-sm font-semibold text-slate-900">Priority: Continue debt payoff</p>
+          <p class="mt-1 text-xs text-slate-600">Keep minimums active and add extra to your highest APR balance.</p>
+          <button class="cta mt-3">Open Roadmap</button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tab-bar">
+      <div class="tab-item active"><i class="fa-solid fa-house"></i>Home</div>
+      <div class="tab-item"><i class="fa-solid fa-map"></i>Roadmap</div>
+      <div class="tab-item"><i class="fa-solid fa-book-open"></i>Guide</div>
+      <div class="tab-item"><i class="fa-solid fa-user"></i>Profile</div>
+    </nav>
+  </div>
+</body>
+</html>

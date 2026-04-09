@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adulti - Debt Editor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <div class="ios-frame">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>9:41</span>
+      <span><i class="fa-solid fa-signal"></i> <i class="fa-solid fa-wifi"></i> <i class="fa-solid fa-battery-full"></i></span>
+    </div>
+
+    <main class="screen-scroll">
+      <section class="card soft-gradient p-4">
+        <h1 class="section-title">Debt Editor</h1>
+        <p class="section-subtitle">Track cards and loans with clear balances and labels.</p>
+      </section>
+
+      <section class="card mt-4 p-4">
+        <div class="flex items-center gap-2">
+          <span class="badge badge-navy">Card</span>
+          <span class="badge" style="background:#eef2ff;color:#334155;">Loan</span>
+        </div>
+        <div class="mt-3 space-y-2">
+          <input class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value="Chase Sapphire" aria-label="Debt label">
+          <input class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value="$960.00" aria-label="Debt amount">
+        </div>
+      </section>
+
+      <section class="card mt-3 p-4">
+        <div class="flex items-center gap-2">
+          <span class="badge" style="background:#eef2ff;color:#334155;">Card</span>
+          <span class="badge badge-navy">Loan</span>
+        </div>
+        <div class="mt-3 space-y-2">
+          <input class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value="Student Loan" aria-label="Debt label">
+          <input class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value="$900.00" aria-label="Debt amount">
+        </div>
+      </section>
+
+      <button class="cta mt-4 w-full">Save Debt Entries</button>
+    </main>
+
+    <nav class="tab-bar">
+      <div class="tab-item"><i class="fa-solid fa-house"></i>Home</div>
+      <div class="tab-item active"><i class="fa-solid fa-map"></i>Roadmap</div>
+      <div class="tab-item"><i class="fa-solid fa-book-open"></i>Guide</div>
+      <div class="tab-item"><i class="fa-solid fa-user"></i>Profile</div>
+    </nav>
+  </div>
+</body>
+</html>
