@@ -29,10 +29,23 @@ class _DebtListEntryState extends State<DebtListEntry> {
     super.initState();
     _labelController = TextEditingController(text: widget.entry.label);
     _amountController = TextEditingController(
-      text: widget.entry.amount > 0
-          ? widget.entry.amount.toStringAsFixed(2)
-          : '',
+      text: _formatInitialAmount(widget.entry.amount),
     );
+  }
+
+  String _formatInitialAmount(double value) {
+    if (value <= 0) {
+      return '';
+    }
+
+    final fixed = value.toStringAsFixed(2);
+    if (fixed.endsWith('.00')) {
+      return fixed.substring(0, fixed.length - 3);
+    }
+    if (fixed.endsWith('0')) {
+      return fixed.substring(0, fixed.length - 1);
+    }
+    return fixed;
   }
 
   @override
@@ -131,9 +144,7 @@ class _DebtListEntryState extends State<DebtListEntry> {
           TextFormField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-            ],
+            inputFormatters: const [_AmountInputFormatter()],
             style: GoogleFonts.spaceGrotesk(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -173,13 +184,31 @@ class _DebtListEntryState extends State<DebtListEntry> {
             ),
             onChanged: (v) {
               HapticFeedback.lightImpact();
-              final parsed = double.tryParse(v) ?? 0.0;
+              final parsed = double.tryParse(v.replaceAll(',', '')) ?? 0.0;
               widget.onChanged(widget.entry.copyWith(amount: parsed));
             },
           ),
         ],
       ),
     );
+  }
+}
+
+class _AmountInputFormatter extends TextInputFormatter {
+  const _AmountInputFormatter();
+
+  static final _allowed = RegExp('^\\d*\\.?\\d{0,2}\$');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty || _allowed.hasMatch(newValue.text)) {
+      return newValue;
+    }
+
+    return oldValue;
   }
 }
 
@@ -191,8 +220,9 @@ class _TypeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
       children: DebtType.values.map((t) {
         final isSelected = t == selected;
         return GestureDetector(

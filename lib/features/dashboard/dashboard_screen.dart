@@ -111,7 +111,7 @@ class DashboardScreen extends ConsumerWidget {
                           ? _formatCurrency(stats.totalInvestments)
                           : 'None',
                       subtitle: stats.anyInvestmentActive
-                          ? 'Roth, 401(k), or brokerage'
+                          ? 'IRA, 401(k), HSA, or brokerage'
                           : 'Set up retirement next',
                       icon: Icons.show_chart_rounded,
                       accent: AppColors.navyLight,
@@ -604,13 +604,31 @@ class _FinanceQuickSheet extends ConsumerWidget {
           children: [
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Roth IRA'),
+              title: const Text('IRA'),
               value: stats.hasRothIra,
               onChanged: notifier.setHasRothIra,
             ),
             if (stats.hasRothIra) ...[
+              DropdownButtonFormField<IraType>(
+                initialValue: stats.iraType ?? IraType.roth,
+                decoration: const InputDecoration(labelText: 'IRA type'),
+                items: IraType.values
+                    .map(
+                      (type) => DropdownMenuItem<IraType>(
+                        value: type,
+                        child: Text(type.label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    notifier.setIraType(value);
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
               CurrencyTextField(
-                label: 'Roth IRA balance',
+                label: 'IRA balance',
                 initialValue: stats.rothIraBalance,
                 onChanged: notifier.setRothIraBalance,
               ),
@@ -627,6 +645,20 @@ class _FinanceQuickSheet extends ConsumerWidget {
                 label: '401(k) balance',
                 initialValue: stats.balance401k,
                 onChanged: notifier.set401kBalance,
+              ),
+              const SizedBox(height: 12),
+            ],
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('HSA'),
+              value: stats.hasHsa,
+              onChanged: notifier.setHasHsa,
+            ),
+            if (stats.hasHsa) ...[
+              CurrencyTextField(
+                label: 'HSA balance',
+                initialValue: stats.hsaBalance,
+                onChanged: notifier.setHsaBalance,
               ),
               const SizedBox(height: 12),
             ],
@@ -692,7 +724,22 @@ class _FinanceQuickSheet extends ConsumerWidget {
 }
 
 String _formatCurrency(double value) {
-  if (value >= 1000000) return '\$${(value / 1000000).toStringAsFixed(1)}M';
-  if (value >= 1000) return '\$${(value / 1000).toStringAsFixed(1)}K';
-  return '\$${value.toStringAsFixed(0)}';
+  final fixed = value.toStringAsFixed(2);
+  final parts = fixed.split('.');
+  final whole = parts[0];
+  final decimal = parts[1];
+
+  final sign = whole.startsWith('-') ? '-' : '';
+  final digits = sign.isEmpty ? whole : whole.substring(1);
+  final buffer = StringBuffer();
+
+  for (var i = 0; i < digits.length; i++) {
+    final idxFromEnd = digits.length - i;
+    buffer.write(digits[i]);
+    if (idxFromEnd > 1 && idxFromEnd % 3 == 1) {
+      buffer.write(',');
+    }
+  }
+
+  return '\$$sign${buffer.toString()}.$decimal';
 }

@@ -18,13 +18,17 @@ class _MainShellState extends State<MainShell> {
 
   late final List<Widget> _screens = [
     DashboardScreen(onOpenRoadmap: _openRoadmapTab),
-    const RoadmapScreen(),
+    RoadmapScreen(onOpenGuide: _openGuideTab),
     const GuideScreen(),
     const ProfileScreen(),
   ];
 
   void _openRoadmapTab() {
     setState(() => _currentIndex = 1);
+  }
+
+  void _openGuideTab() {
+    setState(() => _currentIndex = 2);
   }
 
   @override

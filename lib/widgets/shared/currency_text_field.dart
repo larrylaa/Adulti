@@ -29,11 +29,7 @@ class _CurrencyTextFieldState extends State<CurrencyTextField> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(
-      text: widget.initialValue > 0
-          ? widget.initialValue.toStringAsFixed(2)
-          : '',
-    );
+    _controller = TextEditingController(text: _formatInitialAmount(widget.initialValue));
   }
 
   @override
@@ -48,13 +44,28 @@ class _CurrencyTextFieldState extends State<CurrencyTextField> {
     widget.onChanged(parsed);
   }
 
+  String _formatInitialAmount(double value) {
+    if (value <= 0) {
+      return '';
+    }
+
+    final fixed = value.toStringAsFixed(2);
+    if (fixed.endsWith('.00')) {
+      return fixed.substring(0, fixed.length - 3);
+    }
+    if (fixed.endsWith('0')) {
+      return fixed.substring(0, fixed.length - 1);
+    }
+    return fixed;
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: _controller,
       autofocus: widget.autofocus,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+      inputFormatters: const [_CurrencyInputFormatter()],
       style: GoogleFonts.spaceGrotesk(
         fontSize: 18,
         fontWeight: FontWeight.w600,
@@ -72,5 +83,28 @@ class _CurrencyTextFieldState extends State<CurrencyTextField> {
         ),
       ),
     );
+  }
+}
+
+class _CurrencyInputFormatter extends TextInputFormatter {
+  const _CurrencyInputFormatter();
+
+  static final _allowed = RegExp('^\\d*\\.?\\d{0,2}\$');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    if (text.isEmpty) {
+      return newValue;
+    }
+
+    if (_allowed.hasMatch(text)) {
+      return newValue;
+    }
+
+    return oldValue;
   }
 }

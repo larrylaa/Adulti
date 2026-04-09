@@ -95,7 +95,15 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
   }
 
   Future<void> setHasRothIra(bool value) async {
-    state = state.copyWith(hasRothIra: value);
+    state = state.copyWith(
+      hasRothIra: value,
+      iraType: value ? (state.iraType ?? IraType.roth) : null,
+    );
+    await _persist();
+  }
+
+  Future<void> setIraType(IraType? value) async {
+    state = state.copyWith(iraType: value);
     await _persist();
   }
 
@@ -116,6 +124,16 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
 
   Future<void> set401kBalance(double value) async {
     state = state.copyWith(balance401k: value.clamp(0, double.infinity));
+    await _persist();
+  }
+
+  Future<void> setHasHsa(bool value) async {
+    state = state.copyWith(hasHsa: value);
+    await _persist();
+  }
+
+  Future<void> setHsaBalance(double value) async {
+    state = state.copyWith(hsaBalance: value.clamp(0, double.infinity));
     await _persist();
   }
 

@@ -5,6 +5,20 @@ import 'roadmap_step.dart';
 
 enum CharacterGender { male, female }
 
+enum IraType {
+  roth,
+  traditional;
+
+  String get label {
+    switch (this) {
+      case IraType.roth:
+        return 'Roth IRA';
+      case IraType.traditional:
+        return 'Traditional IRA';
+    }
+  }
+}
+
 enum CharacterClass {
   student,
   graduate,
@@ -46,8 +60,11 @@ class UserStats {
   final List<DebtEntry> debts;
   final bool hasRothIra;
   final double rothIraBalance;
+  final IraType? iraType;
   final bool has401k;
   final double balance401k;
+  final bool hasHsa;
+  final double hsaBalance;
   final bool hasBrokerage;
   final double brokerageBalance;
   final double annualSalary;
@@ -67,8 +84,11 @@ class UserStats {
     this.debts = const [],
     this.hasRothIra = false,
     this.rothIraBalance = 0.0,
+    this.iraType,
     this.has401k = false,
     this.balance401k = 0.0,
+    this.hasHsa = false,
+    this.hsaBalance = 0.0,
     this.hasBrokerage = false,
     this.brokerageBalance = 0.0,
     this.annualSalary = 0.0,
@@ -92,10 +112,11 @@ class UserStats {
 
   bool get vaultSealed => savings >= savingsGoal;
 
-  bool get anyInvestmentActive => hasRothIra || has401k || hasBrokerage;
+  bool get anyInvestmentActive =>
+      hasRothIra || has401k || hasHsa || hasBrokerage;
 
   double get totalInvestments =>
-      rothIraBalance + balance401k + brokerageBalance;
+      rothIraBalance + balance401k + hsaBalance + brokerageBalance;
 
   List<RoadmapStep> get roadmapSteps => _buildRoadmapSteps();
 
@@ -103,7 +124,10 @@ class UserStats {
       .where((step) => !completedRoadmapStepIds.contains(step.id))
       .toList();
 
-  int get completedRoadmapStepsCount => completedRoadmapStepIds.length;
+  int get completedRoadmapStepsCount {
+    final validIds = roadmapSteps.map((step) => step.id).toSet();
+    return completedRoadmapStepIds.where(validIds.contains).length;
+  }
 
   bool canCompleteRoadmapStep(String stepId) {
     switch (stepId) {
@@ -119,6 +143,16 @@ class UserStats {
         return true;
       case 'time_machine':
         return anyInvestmentActive && totalInvestments > 0;
+      case 'invest_401k_match':
+        return has401k && balance401k > 0;
+      case 'invest_hsa':
+        return hasHsa && hsaBalance > 0;
+      case 'invest_ira':
+        return hasRothIra && rothIraBalance > 0;
+      case 'invest_401k_more':
+        return has401k && balance401k > 0;
+      case 'invest_brokerage':
+        return hasBrokerage && brokerageBalance > 0;
       case 'automate_investing':
         return anyInvestmentActive && totalInvestments >= 1000;
       case 'maintain_momentum':
@@ -298,7 +332,7 @@ class UserStats {
               'Open your first retirement account and invest for the long run.',
           whyItMatters:
               'When savings and debt are handled, investing is how money starts working for you.',
-          actionLabel: 'Open Roth IRA or 401k',
+          actionLabel: 'Open your first investing account',
           resourceHint:
               'For young adults, this is usually the point where compound growth becomes the main story.',
           priority: MissionPriority.endgame,
@@ -306,21 +340,107 @@ class UserStats {
       );
     }
 
-    if (anyInvestmentActive && totalInvestments < 1000) {
-      steps.add(
-        const RoadmapStep(
-          id: 'automate_investing',
-          title: 'Automate contributions',
-          summary:
-              'Set recurring deposits so your investing keeps moving without effort.',
-          whyItMatters:
-              'Automation turns investing from a task into a habit you can keep as life gets busier.',
-          actionLabel: 'Pick a monthly contribution',
-          resourceHint:
-              'Start tiny if needed. Consistency matters more than size at this stage.',
-          priority: MissionPriority.endgame,
-        ),
-      );
+    if (anyInvestmentActive) {
+      if (has401k) {
+        steps.add(
+          RoadmapStep(
+            id: 'invest_401k_match',
+            title: 'Priority 1: Capture your 401(k)/403(b) match',
+            summary: balance401k > 0
+                ? 'Confirm you are contributing enough to get the full employer match.'
+                : 'Start contributing to your workplace plan, especially if a match is offered.',
+            whyItMatters:
+                'Employer match is usually the highest-return first step because it boosts your contribution immediately.',
+            actionLabel: balance401k > 0
+                ? 'Check your match threshold and contribution rate'
+                : 'Enroll and set your first contribution rate',
+            resourceHint:
+                'Traditional 401(k) lowers taxable income now; Roth 401(k) gives tax-free qualified withdrawals later.',
+            priority: MissionPriority.endgame,
+          ),
+        );
+      }
+
+      if (hasHsa) {
+        steps.add(
+          RoadmapStep(
+            id: 'invest_hsa',
+            title: 'Priority 2: Build your HSA contribution habit',
+            summary: hsaBalance > 0
+                ? 'Keep HSA contributions steady if the account fits your medical strategy.'
+                : 'Start your first HSA contribution and keep it consistent.',
+            whyItMatters:
+                'HSAs can be highly tax-efficient and can support both current and future medical costs.',
+            actionLabel: hsaBalance > 0
+                ? 'Set or confirm recurring HSA contributions'
+                : 'Fund your HSA for the first time',
+            resourceHint:
+                'HSA eligibility depends on your health plan type; confirm eligibility before increasing contributions.',
+            priority: MissionPriority.endgame,
+          ),
+        );
+      }
+
+      if (hasRothIra) {
+        final iraLabel = (iraType ?? IraType.roth).label;
+        steps.add(
+          RoadmapStep(
+            id: 'invest_ira',
+            title: 'Priority 3: Build your IRA contribution rhythm',
+            summary: rothIraBalance > 0
+                ? 'Keep IRA contributions steady and aligned with your plan.'
+                : 'Make your first IRA contribution and start your investing rhythm.',
+            whyItMatters:
+              iraType == IraType.traditional
+              ? 'Traditional IRA contributions may reduce taxable income now, with taxable withdrawals later.'
+              : 'Roth IRA contributions use after-tax dollars and qualified withdrawals are tax-free later.',
+            actionLabel: rothIraBalance > 0
+                ? 'Schedule recurring IRA deposits'
+              : 'Fund your $iraLabel for the first time',
+            resourceHint:
+                'Know annual contribution limits and income eligibility so your plan stays compliant.',
+            priority: MissionPriority.endgame,
+          ),
+        );
+      }
+
+      if (has401k) {
+        steps.add(
+          RoadmapStep(
+            id: 'invest_401k_more',
+            title: 'Priority 4: Increase 401(k)/403(b) contributions over time',
+            summary: balance401k > 0
+                ? 'After capturing match, raise your contribution rate gradually.'
+                : 'Once your first contribution is live, plan your next increase.',
+            whyItMatters:
+                'Small increases after raises can meaningfully improve long-term outcomes without major budget shock.',
+            actionLabel: 'Set your next contribution increase checkpoint',
+            resourceHint:
+                'Traditional and Roth 401(k) both can be rolled over when changing jobs, but tax treatment differs.',
+            priority: MissionPriority.endgame,
+          ),
+        );
+      }
+
+      if (hasBrokerage) {
+        steps.add(
+          RoadmapStep(
+            id: 'invest_brokerage',
+            title: 'Priority 5: Fund brokerage after tax-advantaged accounts',
+            summary: brokerageBalance > 0
+                ? 'Keep brokerage contributions predictable and goal-based.'
+                : 'Start brokerage contributions after your higher-priority accounts are on track.',
+            whyItMatters:
+                'Brokerage accounts are flexible and useful, but usually come after match and tax-advantaged contribution priorities.',
+            actionLabel: brokerageBalance > 0
+                ? 'Set a recurring brokerage transfer'
+                : 'Fund your brokerage account',
+            resourceHint:
+                'Keep your investment approach simple and avoid frequent strategy switches.',
+            priority: MissionPriority.endgame,
+          ),
+        );
+      }
     }
 
     if (steps.isEmpty) {
@@ -356,8 +476,11 @@ class UserStats {
     'debts': debts.map((d) => d.toMap()).toList(),
     'hasRothIra': hasRothIra,
     'rothIraBalance': rothIraBalance,
+    'iraType': iraType?.name,
     'has401k': has401k,
     'balance401k': balance401k,
+    'hasHsa': hasHsa,
+    'hsaBalance': hsaBalance,
     'hasBrokerage': hasBrokerage,
     'brokerageBalance': brokerageBalance,
     'annualSalary': annualSalary,
@@ -366,39 +489,58 @@ class UserStats {
     'completedRoadmapStepIds': completedRoadmapStepIds,
   };
 
-  factory UserStats.fromMap(Map<String, dynamic> map) => UserStats(
-    name: map['name'] as String?,
-    characterClass: map['characterClass'] != null
-        ? CharacterClass.values[map['characterClass'] as int]
-        : null,
-    gender: map['gender'] != null
-        ? CharacterGender.values[map['gender'] as int]
-        : null,
-    savings: (map['savings'] as num?)?.toDouble() ?? 0.0,
-    savingsGoal: (map['savingsGoal'] as num?)?.toDouble() ?? 10000.0,
-    savingsGoalUnknown: map['savingsGoalUnknown'] as bool? ?? false,
-    checking: (map['checking'] as num?)?.toDouble() ?? 0.0,
-    investmentsUnknown: map['investmentsUnknown'] as bool? ?? false,
-    debts:
-        (map['debts'] as List<dynamic>?)
-            ?.map((d) => DebtEntry.fromMap(d as Map<String, dynamic>))
-            .toList() ??
-        [],
-    hasRothIra: map['hasRothIra'] as bool? ?? false,
-    rothIraBalance: (map['rothIraBalance'] as num?)?.toDouble() ?? 0.0,
-    has401k: map['has401k'] as bool? ?? false,
-    balance401k: (map['balance401k'] as num?)?.toDouble() ?? 0.0,
-    hasBrokerage: map['hasBrokerage'] as bool? ?? false,
-    brokerageBalance: (map['brokerageBalance'] as num?)?.toDouble() ?? 0.0,
-    annualSalary: (map['annualSalary'] as num?)?.toDouble() ?? 0.0,
-    creditScoreStatus: map['creditScoreStatus'] as String?,
-    hasMinted: map['hasMinted'] as bool? ?? false,
-    completedRoadmapStepIds:
-        (map['completedRoadmapStepIds'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        const [],
-  );
+  factory UserStats.fromMap(Map<String, dynamic> map) {
+    final hasIra = map['hasRothIra'] as bool? ?? false;
+    final iraTypeRaw = map['iraType'] as String?;
+
+    IraType? parsedIraType;
+    if (iraTypeRaw != null) {
+      for (final type in IraType.values) {
+        if (type.name == iraTypeRaw) {
+          parsedIraType = type;
+          break;
+        }
+      }
+    }
+    parsedIraType ??= hasIra ? IraType.roth : null;
+
+    return UserStats(
+      name: map['name'] as String?,
+      characterClass: map['characterClass'] != null
+          ? CharacterClass.values[map['characterClass'] as int]
+          : null,
+      gender: map['gender'] != null
+          ? CharacterGender.values[map['gender'] as int]
+          : null,
+      savings: (map['savings'] as num?)?.toDouble() ?? 0.0,
+      savingsGoal: (map['savingsGoal'] as num?)?.toDouble() ?? 10000.0,
+      savingsGoalUnknown: map['savingsGoalUnknown'] as bool? ?? false,
+      checking: (map['checking'] as num?)?.toDouble() ?? 0.0,
+      investmentsUnknown: map['investmentsUnknown'] as bool? ?? false,
+      debts:
+          (map['debts'] as List<dynamic>?)
+              ?.map((d) => DebtEntry.fromMap(d as Map<String, dynamic>))
+              .toList() ??
+          [],
+      hasRothIra: hasIra,
+      rothIraBalance: (map['rothIraBalance'] as num?)?.toDouble() ?? 0.0,
+      iraType: parsedIraType,
+      has401k: map['has401k'] as bool? ?? false,
+      balance401k: (map['balance401k'] as num?)?.toDouble() ?? 0.0,
+      hasHsa: map['hasHsa'] as bool? ?? false,
+      hsaBalance: (map['hsaBalance'] as num?)?.toDouble() ?? 0.0,
+      hasBrokerage: map['hasBrokerage'] as bool? ?? false,
+      brokerageBalance: (map['brokerageBalance'] as num?)?.toDouble() ?? 0.0,
+      annualSalary: (map['annualSalary'] as num?)?.toDouble() ?? 0.0,
+      creditScoreStatus: map['creditScoreStatus'] as String?,
+      hasMinted: map['hasMinted'] as bool? ?? false,
+      completedRoadmapStepIds:
+          (map['completedRoadmapStepIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+    );
+  }
 
   UserStats copyWith({
     Object? name = _sentinel,
@@ -412,8 +554,11 @@ class UserStats {
     List<DebtEntry>? debts,
     bool? hasRothIra,
     double? rothIraBalance,
+    Object? iraType = _sentinel,
     bool? has401k,
     double? balance401k,
+    bool? hasHsa,
+    double? hsaBalance,
     bool? hasBrokerage,
     double? brokerageBalance,
     double? annualSalary,
@@ -432,8 +577,11 @@ class UserStats {
     debts: debts ?? this.debts,
     hasRothIra: hasRothIra ?? this.hasRothIra,
     rothIraBalance: rothIraBalance ?? this.rothIraBalance,
+    iraType: iraType == _sentinel ? this.iraType : iraType as IraType?,
     has401k: has401k ?? this.has401k,
     balance401k: balance401k ?? this.balance401k,
+    hasHsa: hasHsa ?? this.hasHsa,
+    hsaBalance: hsaBalance ?? this.hsaBalance,
     hasBrokerage: hasBrokerage ?? this.hasBrokerage,
     brokerageBalance: brokerageBalance ?? this.brokerageBalance,
     annualSalary: annualSalary ?? this.annualSalary,

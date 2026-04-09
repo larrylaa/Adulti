@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/theme.dart';
 import '../../models/debt_entry.dart';
+import '../../models/user_stats.dart';
 import '../../providers/user_stats_provider.dart';
 import '../../providers/stage_focus_provider.dart';
 import '../../widgets/shared/bento_card.dart';
@@ -510,7 +511,7 @@ class _SubStepWatch extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
       children: [
         Text(
-          'Investments are accounts that can grow over time. Retirement accounts and brokerage accounts both belong here.',
+          'Investments are accounts that can grow over time. Retirement accounts, HSA accounts, and brokerage accounts all belong here.',
           style: GoogleFonts.inter(
             fontSize: 13,
             color: AppColors.textSecondary,
@@ -551,7 +552,7 @@ class _SubStepWatch extends ConsumerWidget {
                 children: [
                   _InvestmentRow(
                     icon: '\u{1F4C8}',
-                    label: 'Roth IRA',
+                    label: 'IRA (Roth/Traditional)',
                     active: stats.hasRothIra,
                     balance: stats.rothIraBalance,
                     onToggle: (v) {
@@ -559,6 +560,38 @@ class _SubStepWatch extends ConsumerWidget {
                       notifier.setHasRothIra(v);
                     },
                     onBalanceChanged: (v) => notifier.setRothIraBalance(v),
+                    activeChild: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: DropdownButtonFormField<IraType>(
+                        initialValue: stats.iraType ?? IraType.roth,
+                        decoration: InputDecoration(
+                          labelText: 'IRA Type',
+                          filled: true,
+                          fillColor: AppColors.surface,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                        items: IraType.values
+                            .map(
+                              (type) => DropdownMenuItem<IraType>(
+                                value: type,
+                                child: Text(type.label),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            notifier.setIraType(value);
+                          }
+                        },
+                      ),
+                    ),
                   ),
                   const Divider(height: 20, indent: 4, endIndent: 4),
                   _InvestmentRow(
@@ -571,6 +604,18 @@ class _SubStepWatch extends ConsumerWidget {
                       notifier.setHas401k(v);
                     },
                     onBalanceChanged: (v) => notifier.set401kBalance(v),
+                  ),
+                  const Divider(height: 20, indent: 4, endIndent: 4),
+                  _InvestmentRow(
+                    icon: '\u{1FA7A}',
+                    label: 'HSA',
+                    active: stats.hasHsa,
+                    balance: stats.hsaBalance,
+                    onToggle: (v) {
+                      onFocus();
+                      notifier.setHasHsa(v);
+                    },
+                    onBalanceChanged: (v) => notifier.setHsaBalance(v),
                   ),
                   const Divider(height: 20, indent: 4, endIndent: 4),
                   _InvestmentRow(
@@ -603,6 +648,7 @@ class _InvestmentRow extends StatelessWidget {
   final double balance;
   final ValueChanged<bool> onToggle;
   final ValueChanged<double> onBalanceChanged;
+  final Widget? activeChild;
 
   const _InvestmentRow({
     required this.icon,
@@ -611,6 +657,7 @@ class _InvestmentRow extends StatelessWidget {
     required this.balance,
     required this.onToggle,
     required this.onBalanceChanged,
+    this.activeChild,
   });
 
   @override
@@ -646,10 +693,15 @@ class _InvestmentRow extends StatelessWidget {
           child: active
               ? Padding(
                   padding: const EdgeInsets.only(top: 8, left: 30),
-                  child: CurrencyTextField(
-                    label: 'Current Balance',
-                    initialValue: balance,
-                    onChanged: onBalanceChanged,
+                  child: Column(
+                    children: [
+                      CurrencyTextField(
+                        label: 'Current Balance',
+                        initialValue: balance,
+                        onChanged: onBalanceChanged,
+                      ),
+                      ...?(activeChild == null ? null : [activeChild!]),
+                    ],
                   ),
                 )
               : const SizedBox.shrink(),
