@@ -16,7 +16,7 @@ The product is built around clarity:
 - Follow a prioritized roadmap
 - Learn concepts in plain language tied to real actions
 
-## MVP Features
+## Features
 
 - Financial snapshot: checking, savings, debt, and investments
 - Personalized roadmap with prioritized next steps
