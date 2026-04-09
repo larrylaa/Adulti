@@ -14,10 +14,7 @@ class GuideScreen extends StatelessWidget {
   void _openArticle(BuildContext context, GuideArticle article) {
     AnalyticsService.logEvent(
       'guide_article_open',
-      parameters: {
-        'article_id': article.id,
-        'source': 'guide_tab',
-      },
+      parameters: {'article_id': article.id, 'source': 'guide_tab'},
     );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -267,7 +264,10 @@ class GuideScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              icon: const Icon(Icons.menu_book_rounded, size: 15),
+                              icon: const Icon(
+                                Icons.menu_book_rounded,
+                                size: 15,
+                              ),
                               label: const Text('Read Full Guide'),
                             ),
                           ),

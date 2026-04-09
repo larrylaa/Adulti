@@ -390,13 +390,12 @@ class UserStats {
             summary: rothIraBalance > 0
                 ? 'Keep IRA contributions steady and aligned with your plan.'
                 : 'Make your first IRA contribution and start your investing rhythm.',
-            whyItMatters:
-              iraType == IraType.traditional
-              ? 'Traditional IRA contributions may reduce taxable income now, with taxable withdrawals later.'
-              : 'Roth IRA contributions use after-tax dollars and qualified withdrawals are tax-free later.',
+            whyItMatters: iraType == IraType.traditional
+                ? 'Traditional IRA contributions may reduce taxable income now, with taxable withdrawals later.'
+                : 'Roth IRA contributions use after-tax dollars and qualified withdrawals are tax-free later.',
             actionLabel: rothIraBalance > 0
                 ? 'Schedule recurring IRA deposits'
-              : 'Fund your $iraLabel for the first time',
+                : 'Fund your $iraLabel for the first time',
             resourceHint:
                 'Know annual contribution limits and income eligibility so your plan stays compliant.',
             priority: MissionPriority.endgame,

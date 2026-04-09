@@ -29,7 +29,9 @@ class _CurrencyTextFieldState extends State<CurrencyTextField> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: _formatInitialAmount(widget.initialValue));
+    _controller = TextEditingController(
+      text: _formatInitialAmount(widget.initialValue),
+    );
   }
 
   @override

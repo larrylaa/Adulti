@@ -342,7 +342,9 @@ class _GenericRoadmapSheet extends StatelessWidget {
                             child: Icon(
                               stage.icon,
                               size: 16,
-                              color: isCurrent ? AppColors.success : AppColors.navy,
+                              color: isCurrent
+                                  ? AppColors.success
+                                  : AppColors.navy,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -491,10 +493,7 @@ class _LearnSheet extends StatelessWidget {
                   onPressed: () {
                     AnalyticsService.logEvent(
                       'roadmap_learn_more_tap',
-                      parameters: {
-                        'step_id': stepId,
-                        'article_id': article.id,
-                      },
+                      parameters: {'step_id': stepId, 'article_id': article.id},
                     );
                     Navigator.of(context).pop();
                     onOpenGuide?.call();
