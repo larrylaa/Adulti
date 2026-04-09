@@ -2,11 +2,13 @@
 
 <!-- markdownlint-disable MD033 -->
 <p align="center">
-	<img src="adulti_logo.png" alt="Adulti logo" width="220">
+  <img src="demo_photos/Adulti_Banner.png" alt="Adulti banner" width="860">
 </p>
 <!-- markdownlint-enable MD033 -->
 
 Adulti is a mobile-first personal finance app that helps early-career adults understand where their money stands and what to do next.
+
+[![Get it on Google Play](https://img.shields.io/badge/Get%20it%20on-Google%20Play-0F9D58?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.larrylaa.adulti)
 
 The product is built around clarity:
 
@@ -48,16 +50,34 @@ The product is built around clarity:
 
 The following screenshots are from the working app flow.
 
-<p>
-	<img src="demo_photos/onboarding.png" width="220" alt="Onboarding">
-	<img src="demo_photos/UI_Dashboard.png" width="220" alt="Dashboard">
-	<img src="demo_photos/roadmap.jpg" width="220" alt="Roadmap">
-</p>
-<p>
-	<img src="demo_photos/guide1.jpg" width="220" alt="Guide">
-	<img src="demo_photos/guide2.jpg" width="220" alt="Guide detail">
-	<img src="demo_photos/manageadulti.jpg" width="220" alt="Manage balances">
-</p>
+![Adulti banner](demo_photos/Adulti_Banner.png)
+![Adulti logo](demo_photos/adulti_logo.png)
+
+### Authentication
+
+![Create account](demo_photos/createadulti.jpg)
+![Sign in](demo_photos/signinadulti.jpg)
+
+### Onboarding and Core Snapshot
+
+![Onboarding](demo_photos/onboarding.png)
+![Dashboard](demo_photos/UI_Dashboard.png)
+![Checking](demo_photos/checking.jpg)
+
+### Roadmap and Progress
+
+![Roadmap](demo_photos/roadmap.jpg)
+![Vault](demo_photos/vault.jpg)
+![Debt ghost](demo_photos/debtghost.jpg)
+![Time machine](demo_photos/timemachine.jpg)
+![ROI](demo_photos/roi.jpg)
+
+### Guide and Management Views
+
+![Guide 1](demo_photos/guide1.jpg)
+![Guide 2](demo_photos/guide2.jpg)
+![Guide 3](demo_photos/guide3.jpg)
+![Manage Adulti](demo_photos/manageadulti.jpg)
 
 ## Local Development
 
