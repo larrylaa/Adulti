@@ -1,5 +1,11 @@
 # Adulti
 
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+	<img src="adulti_logo.png" alt="Adulti logo" width="220">
+</p>
+<!-- markdownlint-enable MD033 -->
+
 Adulti is a mobile-first personal finance app that helps early-career adults understand where their money stands and what to do next.
 
 The product is built around clarity:
