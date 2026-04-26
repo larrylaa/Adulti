@@ -2,6 +2,7 @@ import {
   AbsoluteFill,
   Audio,
   Easing,
+  Img,
   OffthreadVideo,
   Sequence,
   interpolate,
@@ -33,6 +34,7 @@ type DemoSlots = {
 export type MyCompositionProps = {
   musicSrc?: string;
   voiceoverSrc?: string;
+  screenTextVoiceover?: boolean;
   demoSlots?: DemoSlots;
 };
 
@@ -55,22 +57,33 @@ const resolveAssetSrc = (src: string) => {
 };
 
 const resolveAudioSrc = (src: string) => resolveAssetSrc(src);
+const APP_LOGO_SRC = staticFile("adulti-logo.png");
 const CLIP_PHONE_SCALE = 1.26;
 const CLIP_TITLE_FONT_SIZE = 52;
 const CLIP_SEQUENCE_PREMOUNT_FRAMES = 60;
-const toGlobalFrame = (seconds: number, frame: number) =>
-  seconds * ADULTI_VIDEO.fps + frame;
-const ONBOARDING_FIELDS_START_FRAME =
-  toGlobalFrame(11, 14) - SCENE_START.scene3;
-const ONBOARDING_INCOME_START_FRAME =
-  toGlobalFrame(20, 29) - SCENE_START.scene3;
-const ONBOARDING_DASHBOARD_REVEAL_FRAME =
-  toGlobalFrame(24, 15) - SCENE_START.scene3;
+const ONBOARDING_FIELDS_START_FRAME = 92;
+const ONBOARDING_INCOME_START_FRAME = 377;
+const ONBOARDING_DASHBOARD_REVEAL_FRAME = 473;
 
 type NarrationCue = {
   from: number;
   text: string;
 };
+
+const INTRO_CUES: NarrationCue[] = [
+  { from: 0, text: "Adulting is hard." },
+  { from: 60, text: "Especially finances." },
+  {
+    from: 120,
+    text: "They did not teach us this in school, so no wonder it all sounds like gibberish.",
+  },
+];
+const GIBBERISH_OVERLAY_CUES: NarrationCue[] = INTRO_CUES.slice(2);
+
+const REVEAL_CUES: NarrationCue[] = [
+  { from: 40, text: "But there is a better way to navigate." },
+  { from: 126, text: "Introducing Adulti." },
+];
 
 const ONBOARDING_CUES: NarrationCue[] = [
   { from: 0, text: "Tell Adulti where you are right now." },
@@ -86,7 +99,7 @@ const ONBOARDING_CUES: NarrationCue[] = [
     from: ONBOARDING_DASHBOARD_REVEAL_FRAME,
     text: "Your dashboard adapts to your stage instantly.",
   },
-  { from: 500, text: "Now you are ready for the next move." },
+  { from: 560, text: "Now you are ready for the next move." },
 ];
 
 const ROADMAP_CUES: NarrationCue[] = [
@@ -99,6 +112,54 @@ const GUIDE_CUES: NarrationCue[] = [
   { from: 0, text: "Guides break big money topics into simple steps." },
   { from: 130, text: "Follow practical checklists you can use today." },
   { from: 285, text: "Build confidence with repeatable playbooks." },
+];
+
+const FEEDBACK_CAPTION_CUES: NarrationCue[] = [
+  { from: 20, text: "Here's what users are saying about Adulti." },
+];
+
+const FEEDBACK_VOICEOVER_CUES: NarrationCue[] = [
+  { from: 24, text: "Here's what users are saying about Adulti." },
+];
+
+const OUTRO_VOICEOVER_CUES: NarrationCue[] = [
+  { from: 20, text: "Stop guessing. Start navigating." },
+];
+
+type ScreenTextVoiceCue = {
+  from: number;
+  src: string;
+};
+
+const SCREEN_TEXT_VOICEOVER_CUES: ScreenTextVoiceCue[] = [
+  ...INTRO_CUES.map((cue, index) => ({
+    from: SCENE_START.scene1 + cue.from,
+    src: `/voiceover-cues/intro-${String(index + 1).padStart(2, "0")}.wav`,
+  })),
+  ...REVEAL_CUES.map((cue, index) => ({
+    from: SCENE_START.scene2 + cue.from,
+    src: `/voiceover-cues/reveal-${String(index + 1).padStart(2, "0")}.wav`,
+  })),
+  ...ONBOARDING_CUES.map((cue, index) => ({
+    from: SCENE_START.scene3 + cue.from,
+    src: `/voiceover-cues/onboarding-${String(index + 1).padStart(2, "0")}.wav`,
+  })),
+  ...ROADMAP_CUES.map((cue, index) => ({
+    from: SCENE_START.scene4 + cue.from,
+    src: `/voiceover-cues/roadmap-${String(index + 1).padStart(2, "0")}.wav`,
+  })),
+  ...GUIDE_CUES.map((cue, index) => ({
+    from: SCENE_START.scene5 + cue.from,
+    src: `/voiceover-cues/guide-${String(index + 1).padStart(2, "0")}.wav`,
+  })),
+  ...FEEDBACK_VOICEOVER_CUES.map((cue, index) => ({
+    from: SCENE_START.scene6 + cue.from,
+    src: `/voiceover-cues/feedback-${String(index + 1).padStart(2, "0")}.wav`,
+  })),
+  ...OUTRO_VOICEOVER_CUES.map((cue, index) => ({
+    from: SCENE_START.scene7 + cue.from,
+    src: `/voiceover-cues/outro-${String(index + 1).padStart(2, "0")}.wav`,
+  })),
 ];
 
 const SceneTransition: React.FC<{
@@ -193,39 +254,25 @@ const ClipWalkthroughText: React.FC<{
   );
 };
 
-const CompassLogo: React.FC<{ size?: number }> = ({ size = 170 }) => {
+const AppLogo: React.FC<{ size?: number }> = ({ size = 170 }) => {
   return (
     <div
       style={{
         width: size,
         height: size,
-        borderRadius: size / 2,
-        background: ADULTI_COLORS.surface,
-        border: `8px solid ${ADULTI_COLORS.navy}`,
+        borderRadius: size * 0.24,
+        backgroundColor: ADULTI_COLORS.surface,
+        border: `2px solid ${ADULTI_COLORS.borderNavySoft}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        position: "relative",
-        boxShadow: "0 10px 28px rgba(30, 58, 95, 0.20)",
+        boxShadow: "0 10px 28px rgba(30, 58, 95, 0.16)",
+        overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          width: size * 0.33,
-          height: size * 0.33,
-          transform: "rotate(45deg)",
-          background: ADULTI_COLORS.success,
-          borderRadius: 8,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: size * 0.12,
-          height: size * 0.12,
-          borderRadius: 999,
-          background: ADULTI_COLORS.navy,
-        }}
+      <Img
+        src={APP_LOGO_SRC}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     </div>
   );
@@ -329,6 +376,10 @@ const Scene1KineticHook: React.FC = () => {
             );
           })
         : null}
+      <ClipWalkthroughText
+        cues={GIBBERISH_OVERLAY_CUES}
+        durationInFrames={SCENE_DURATION.scene1}
+      />
     </AbsoluteFill>
   );
 };
@@ -336,20 +387,43 @@ const Scene1KineticHook: React.FC = () => {
 const Scene2Reveal: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const introducingStart = 118;
   const wipe = interpolate(frame, [0, 80], [0, 160], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.cubic),
   });
-  const logoScale = spring({
+  const firstTextOpacity = interpolate(frame, [26, 38, 96, 114], [0, 1, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const firstTextY = interpolate(frame, [26, 38], [24, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
+  const introducingIn = spring({
     fps,
-    frame: frame - 14,
+    frame: frame - introducingStart,
     config: { mass: 0.5, damping: 10 },
   });
-  const copyRise = spring({
-    fps,
-    frame: frame - 38,
-    config: { mass: 0.5, damping: 10 },
+  const introducingOpacity = interpolate(
+    frame,
+    [introducingStart, introducingStart + 16],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: Easing.out(Easing.cubic),
+    },
+  );
+  const introducingScale = interpolate(introducingIn, [0, 1], [0.8, 1.1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const introducingY = interpolate(introducingIn, [0, 1], [26, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
   });
 
   return (
@@ -361,33 +435,58 @@ const Scene2Reveal: React.FC = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          gap: 34,
+          padding: "0 72px",
         }}
       >
         <div
           style={{
-            transform: `scale(${interpolate(logoScale, [0, 1], [0.7, 1])})`,
+            position: "relative",
+            width: 900,
+            height: 360,
           }}
         >
-          <CompassLogo size={220} />
-        </div>
-        <div
-          style={{
-            opacity: copyRise,
-            transform: `translateY(${interpolate(copyRise, [0, 1], [34, 0])}px)`,
-            textAlign: "center",
-            color: ADULTI_COLORS.textPrimary,
-            fontFamily: ADULTI_FONTS.heading,
-            fontWeight: 700,
-            fontSize: 54,
-            lineHeight: 1.12,
-            maxWidth: 840,
-            letterSpacing: -0.8,
-          }}
-        >
-          There is a better way to navigate.
-          <br />
-          This is Adulti.
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: firstTextOpacity,
+              transform: `translateY(${firstTextY}px)`,
+              textAlign: "center",
+              color: ADULTI_COLORS.textPrimary,
+              fontFamily: ADULTI_FONTS.heading,
+              fontWeight: 700,
+              fontSize: 56,
+              lineHeight: 1.12,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            But there is a better way to navigate.
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: introducingOpacity,
+              transform: `translateY(${introducingY}px) scale(${introducingScale})`,
+              transformOrigin: "center center",
+              textAlign: "center",
+              color: ADULTI_COLORS.textPrimary,
+              fontFamily: ADULTI_FONTS.heading,
+              fontWeight: 800,
+              fontSize: 88,
+              lineHeight: 1.02,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 22,
+            }}
+          >
+            <AppLogo size={220} />
+            <div>Introducing Adulti</div>
+          </div>
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
@@ -851,6 +950,10 @@ const Scene6SocialProof: React.FC = () => {
           </div>
         );
       })}
+      <ClipWalkthroughText
+        cues={FEEDBACK_CAPTION_CUES}
+        durationInFrames={SCENE_DURATION.scene6}
+      />
     </AbsoluteFill>
   );
 };
@@ -873,7 +976,7 @@ const Scene7Outro: React.FC = () => {
         opacity: outroFade,
       }}
     >
-      <CompassLogo size={300} />
+      <AppLogo size={300} />
       <div
         style={{
           fontFamily: ADULTI_FONTS.heading,
@@ -902,7 +1005,7 @@ const Scene7Outro: React.FC = () => {
           transform: `scale(${pulse})`,
         }}
       >
-        DOWNLOAD ADULTI
+        GET IT ON GOOGLE PLAY
       </div>
     </AbsoluteFill>
   );
@@ -932,9 +1035,12 @@ const audioVolume = (
 export const MyComposition: React.FC<MyCompositionProps> = ({
   musicSrc,
   voiceoverSrc,
+  screenTextVoiceover,
   demoSlots,
 }) => {
   const { durationInFrames } = useVideoConfig();
+  const useScreenTextVoiceover = screenTextVoiceover ?? false;
+  const hasVoiceover = Boolean(voiceoverSrc) || useScreenTextVoiceover;
 
   return (
     <AbsoluteFill style={{ backgroundColor: ADULTI_COLORS.background }}>
@@ -942,7 +1048,7 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
         <Audio
           src={resolveAudioSrc(musicSrc)}
           volume={(frame) =>
-            audioVolume(frame, durationInFrames, voiceoverSrc ? 0.24 : 0.65)
+            audioVolume(frame, durationInFrames, hasVoiceover ? 0.24 : 0.65)
           }
         />
       ) : null}
@@ -952,6 +1058,24 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
           volume={(frame) => audioVolume(frame, durationInFrames, 1)}
         />
       ) : null}
+      {useScreenTextVoiceover
+        ? SCREEN_TEXT_VOICEOVER_CUES.map((cue, index) => {
+            const nextFrom =
+              SCREEN_TEXT_VOICEOVER_CUES[index + 1]?.from ?? durationInFrames;
+            const cueDuration = Math.max(1, nextFrom - cue.from);
+
+            return (
+              <Sequence
+                key={cue.src}
+                from={cue.from}
+                durationInFrames={cueDuration}
+                showInTimeline={false}
+              >
+                <Audio src={resolveAudioSrc(cue.src)} endAt={cueDuration} />
+              </Sequence>
+            );
+          })
+        : null}
 
       <Sequence
         from={SCENE_START.scene1}
@@ -964,6 +1088,7 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
       <Sequence
         from={SCENE_START.scene2}
         durationInFrames={SCENE_DURATION.scene2}
+        premountFor={CLIP_SEQUENCE_PREMOUNT_FRAMES}
       >
         <SceneTransition durationInFrames={SCENE_DURATION.scene2}>
           <Scene2Reveal />

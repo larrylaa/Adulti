@@ -2,7 +2,7 @@ export const ADULTI_VIDEO = {
   width: 1080,
   height: 1920,
   fps: 30,
-  durationInFrames: 1902,
+  durationInFrames: 2142,
 };
 
 export const SCENE_CROSSFADE_FRAMES = 24;
@@ -10,9 +10,9 @@ export const ONBOARD_TO_ROADMAP_GAP_FRAMES = 28;
 export const ROADMAP_TO_GUIDE_GAP_FRAMES = 8;
 
 export const SCENE_DURATION = {
-  scene1: 180,
-  scene2: 120,
-  scene3: 540,
+  scene1: 270,
+  scene2: 210,
+  scene3: 600,
   scene4: 300,
   scene5: 420,
   scene6: 300,

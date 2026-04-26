@@ -7,6 +7,7 @@ export const RemotionRoot: React.FC = () => {
   const defaultProps: MyCompositionProps = {
     musicSrc: "/music.mp3",
     voiceoverSrc: undefined,
+    screenTextVoiceover: true,
     demoSlots: {
       onboardingDashboardSrc: "/Onboard.mp4",
       roadmapSrc: "/Roadmap.mp4",
