@@ -8,10 +8,9 @@ export const RemotionRoot: React.FC = () => {
     musicSrc: "/music.mp3",
     voiceoverSrc: undefined,
     demoSlots: {
-      onboardingLabel: "Onboarding placeholder slot",
-      dashboardLabel: "Dashboard placeholder slot",
-      roadmapLabel: "Roadmap placeholder slot",
-      guideLabel: "Guide placeholder slot",
+      onboardingDashboardSrc: "/Onboard.mp4",
+      roadmapSrc: "/Roadmap.mp4",
+      guideSrc: "/Guide.mp4",
     },
   };
 

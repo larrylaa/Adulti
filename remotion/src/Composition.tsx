@@ -2,6 +2,7 @@ import {
   AbsoluteFill,
   Audio,
   Easing,
+  OffthreadVideo,
   Sequence,
   interpolate,
   staticFile,
@@ -18,18 +19,16 @@ import {
 import {
   ADULTI_VIDEO,
   CARD_SPRING,
+  SCENE_CROSSFADE_FRAMES,
   SCENE_DURATION,
   SCENE_START,
 } from "./adulti/timeline";
 
 type DemoSlots = {
-  onboardingLabel?: string;
-  dashboardLabel?: string;
-  roadmapLabel?: string;
-  guideLabel?: string;
+  onboardingDashboardSrc?: string;
+  roadmapSrc?: string;
+  guideSrc?: string;
 };
-
-const ROADMAP_ITEM_INDEXES = [0, 1, 2, 3, 4, 5, 6];
 
 export type MyCompositionProps = {
   musicSrc?: string;
@@ -48,11 +47,150 @@ const cardEntrance = (frame: number, fps: number, delayFrames: number) => {
   });
 };
 
-const resolveAudioSrc = (src: string) => {
+const resolveAssetSrc = (src: string) => {
   if (/^https?:\/\//.test(src)) {
     return src;
   }
-  return staticFile(src);
+  return staticFile(src.replace(/^\/+/, ""));
+};
+
+const resolveAudioSrc = (src: string) => resolveAssetSrc(src);
+const CLIP_PHONE_SCALE = 1.26;
+const CLIP_TITLE_FONT_SIZE = 52;
+const CLIP_SEQUENCE_PREMOUNT_FRAMES = 60;
+const toGlobalFrame = (seconds: number, frame: number) =>
+  seconds * ADULTI_VIDEO.fps + frame;
+const ONBOARDING_FIELDS_START_FRAME =
+  toGlobalFrame(11, 14) - SCENE_START.scene3;
+const ONBOARDING_INCOME_START_FRAME =
+  toGlobalFrame(20, 29) - SCENE_START.scene3;
+const ONBOARDING_DASHBOARD_REVEAL_FRAME =
+  toGlobalFrame(24, 15) - SCENE_START.scene3;
+
+type NarrationCue = {
+  from: number;
+  text: string;
+};
+
+const ONBOARDING_CUES: NarrationCue[] = [
+  { from: 0, text: "Tell Adulti where you are right now." },
+  {
+    from: ONBOARDING_FIELDS_START_FRAME,
+    text: "Set checking, savings, emergency fund goals, debt, and retirement.",
+  },
+  {
+    from: ONBOARDING_INCOME_START_FRAME,
+    text: "Now add income so your plan fits your real life.",
+  },
+  {
+    from: ONBOARDING_DASHBOARD_REVEAL_FRAME,
+    text: "Your dashboard adapts to your stage instantly.",
+  },
+  { from: 500, text: "Now you are ready for the next move." },
+];
+
+const ROADMAP_CUES: NarrationCue[] = [
+  { from: 0, text: "Roadmap turns goals into clear next actions." },
+  { from: 95, text: "Each step explains what to do and why it matters." },
+  { from: 200, text: "Stay focused with one practical next move." },
+];
+
+const GUIDE_CUES: NarrationCue[] = [
+  { from: 0, text: "Guides break big money topics into simple steps." },
+  { from: 130, text: "Follow practical checklists you can use today." },
+  { from: 285, text: "Build confidence with repeatable playbooks." },
+];
+
+const SceneTransition: React.FC<{
+  durationInFrames: number;
+  children: React.ReactNode;
+}> = ({ durationInFrames, children }) => {
+  const frame = useCurrentFrame();
+  const fadeFrames = Math.min(
+    SCENE_CROSSFADE_FRAMES,
+    Math.floor(durationInFrames / 2),
+  );
+  const fadeOutStart = durationInFrames - fadeFrames;
+  const opacity = interpolate(
+    frame,
+    [0, fadeFrames],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: Easing.out(Easing.cubic),
+    },
+  );
+  const fadeOut = interpolate(
+    frame,
+    [fadeOutStart, durationInFrames],
+    [1, 0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: Easing.in(Easing.cubic),
+    },
+  );
+
+  return <AbsoluteFill style={{ opacity: Math.min(opacity, fadeOut) }}>{children}</AbsoluteFill>;
+};
+
+const ClipWalkthroughText: React.FC<{
+  cues: NarrationCue[];
+  durationInFrames: number;
+}> = ({ cues, durationInFrames }) => {
+  const frame = useCurrentFrame();
+  const cueIndex = cues.reduce((current, cue, index) => {
+    return frame >= cue.from ? index : current;
+  }, -1);
+
+  if (cueIndex === -1) {
+    return null;
+  }
+
+  const cue = cues[cueIndex];
+  const cueEnd =
+    cueIndex === cues.length - 1 ? durationInFrames : cues[cueIndex + 1].from;
+  const fadeIn = interpolate(frame, [cue.from, cue.from + 10], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
+  const fadeOut = interpolate(frame, [cueEnd - 12, cueEnd], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.in(Easing.cubic),
+  });
+  const rise = interpolate(frame, [cue.from, cue.from + 10], [14, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 72,
+        right: 72,
+        bottom: 58,
+        borderRadius: 24,
+        backgroundColor: "rgba(15, 23, 42, 0.72)",
+        border: "1.5px solid rgba(148, 163, 184, 0.35)",
+        padding: "18px 24px",
+        fontFamily: ADULTI_FONTS.body,
+        fontSize: 34,
+        fontWeight: 600,
+        lineHeight: 1.2,
+        color: ADULTI_COLORS.surface,
+        textAlign: "center",
+        opacity: Math.min(fadeIn, fadeOut),
+        transform: `translateY(${rise}px)`,
+      }}
+    >
+      {cue.text}
+    </div>
+  );
 };
 
 const CompassLogo: React.FC<{ size?: number }> = ({ size = 170 }) => {
@@ -256,12 +394,10 @@ const Scene2Reveal: React.FC = () => {
   );
 };
 
-const Scene3OnboardingFlow: React.FC<{ label: string }> = ({ label }) => {
+const Scene3OnboardingFlow: React.FC<{ src: string }> = ({ src }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const cardIn = cardEntrance(frame, fps, 0);
-  const clickIn = cardEntrance(frame, fps, 70);
-  const studentActive = frame > 110;
+  const phoneIn = cardEntrance(frame, fps, 0);
 
   return (
     <AbsoluteFill
@@ -273,86 +409,32 @@ const Scene3OnboardingFlow: React.FC<{ label: string }> = ({ label }) => {
     >
       <div
         style={{
-          ...SHARED_STYLES.card,
-          width: 870,
-          padding: 42,
-          transform: `translateY(${interpolate(cardIn, [0, 1], [60, 0])}px) scale(${interpolate(cardIn, [0, 1], [0.95, 1])})`,
-          opacity: cardIn,
+          position: "absolute",
+          top: 90,
+          fontFamily: ADULTI_FONTS.heading,
+          fontSize: CLIP_TITLE_FONT_SIZE,
+          fontWeight: 800,
+          color: ADULTI_COLORS.textPrimary,
         }}
       >
-        <div
-          style={{
-            fontFamily: ADULTI_FONTS.heading,
-            color: ADULTI_COLORS.textPrimary,
-            fontSize: 62,
-            fontWeight: 800,
-            letterSpacing: -1,
-          }}
-        >
-          Path Selection
-        </div>
-        <div
-          style={{
-            marginTop: 10,
-            fontFamily: ADULTI_FONTS.body,
-            color: ADULTI_COLORS.textSecondary,
-            fontSize: 32,
-          }}
-        >
-          Adapts to your specific life stage.
-        </div>
-        <div style={{ marginTop: 34, display: "flex", gap: 16 }}>
-          {["Student", "New Grad"].map((item) => {
-            const selected =
-              item === "Student" ? studentActive : !studentActive;
-            return (
-              <div
-                key={item}
-                style={{
-                  flex: 1,
-                  borderRadius: ADULTI_RADII.card,
-                  border: `1.5px solid ${ADULTI_COLORS.borderNavySoft}`,
-                  background: selected
-                    ? "rgba(34, 197, 94, 0.16)"
-                    : ADULTI_COLORS.surface,
-                  padding: "28px 24px",
-                  textAlign: "center",
-                  fontFamily: ADULTI_FONTS.body,
-                  fontSize: 34,
-                  fontWeight: selected ? 700 : 500,
-                  color: selected
-                    ? ADULTI_COLORS.success
-                    : ADULTI_COLORS.textPrimary,
-                }}
-              >
-                {item}
-              </div>
-            );
-          })}
-        </div>
-        <div
-          style={{
-            marginTop: 26,
-            fontFamily: ADULTI_FONTS.body,
-            fontSize: 24,
-            color: ADULTI_COLORS.textSecondary,
-          }}
-        >
-          Placeholder media: {label}
-        </div>
+        Onboarding + Dashboard
       </div>
       <div
         style={{
-          width: 92,
-          height: 92,
-          borderRadius: 999,
-          border: `6px solid ${ADULTI_COLORS.success}`,
-          position: "absolute",
-          top: 975,
-          left: 280,
-          opacity: clickIn,
-          transform: `scale(${interpolate(clickIn, [0, 1], [1.4, 1])})`,
+          transform: `translateY(${interpolate(phoneIn, [0, 1], [90, 0])}px) scale(${CLIP_PHONE_SCALE})`,
         }}
+      >
+        <PhoneMockup>
+          <OffthreadVideo
+            src={resolveAssetSrc(src)}
+            muted
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </PhoneMockup>
+      </div>
+      <ClipWalkthroughText
+        cues={ONBOARDING_CUES}
+        durationInFrames={SCENE_DURATION.scene3}
       />
     </AbsoluteFill>
   );
@@ -368,7 +450,6 @@ const PhoneMockup: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         border: "10px solid #0E1728",
         background: "#111827",
         boxShadow: "0 20px 80px rgba(15, 23, 42, 0.30)",
-        transform: "perspective(1200px) rotateY(-8deg) rotateX(6deg)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -399,25 +480,10 @@ const PhoneMockup: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-const Scene4Roadmap: React.FC<{ label: string }> = ({ label }) => {
+const Scene4Roadmap: React.FC<{ src: string }> = ({ src }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const phoneIn = cardEntrance(frame, fps, 0);
-  const scrollY = interpolate(frame, [0, 200], [0, -520], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.linear,
-  });
-  const zoom = spring({
-    fps,
-    frame: frame - 210,
-    config: { mass: 0.5, damping: 10 },
-  });
-  const criticalPulse = interpolate(
-    Math.sin(frame * 0.22),
-    [-1, 1],
-    [0.95, 1.04],
-  );
 
   return (
     <AbsoluteFill
@@ -429,125 +495,38 @@ const Scene4Roadmap: React.FC<{ label: string }> = ({ label }) => {
     >
       <div
         style={{
-          transform: `translateY(${interpolate(phoneIn, [0, 1], [90, 0])}px) scale(${interpolate(zoom, [0, 1], [1, 1.2])})`,
+          position: "absolute",
+          top: 90,
+          fontFamily: ADULTI_FONTS.heading,
+          fontSize: CLIP_TITLE_FONT_SIZE,
+          fontWeight: 800,
+          color: ADULTI_COLORS.textPrimary,
+        }}
+      >
+        Roadmap
+      </div>
+      <div
+        style={{
+          transform: `translateY(${interpolate(phoneIn, [0, 1], [90, 0])}px) scale(${CLIP_PHONE_SCALE})`,
         }}
       >
         <PhoneMockup>
-          <div
-            style={{
-              padding: "66px 32px 24px",
-              height: "100%",
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: ADULTI_FONTS.heading,
-                fontSize: 46,
-                fontWeight: 800,
-                color: ADULTI_COLORS.textPrimary,
-              }}
-            >
-              Roadmap
-            </div>
-            <div
-              style={{
-                fontFamily: ADULTI_FONTS.body,
-                fontSize: 22,
-                color: ADULTI_COLORS.textSecondary,
-                marginTop: 6,
-              }}
-            >
-              Placeholder media: {label}
-            </div>
-            <div
-              style={{ marginTop: 26, transform: `translateY(${scrollY}px)` }}
-            >
-              {ROADMAP_ITEM_INDEXES.map((i) => {
-                const amber = i === 3;
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      ...SHARED_STYLES.card,
-                      marginBottom: 16,
-                      minHeight: 124,
-                      padding: 16,
-                      position: "relative",
-                      backgroundColor: amber
-                        ? "rgba(245, 158, 11, 0.08)"
-                        : ADULTI_COLORS.surface,
-                    }}
-                  >
-                    {amber ? (
-                      <div
-                        style={{
-                          position: "absolute",
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 8,
-                          borderTopLeftRadius: ADULTI_RADII.card,
-                          borderBottomLeftRadius: ADULTI_RADII.card,
-                          backgroundColor: ADULTI_COLORS.warning,
-                        }}
-                      />
-                    ) : null}
-                    <div
-                      style={{
-                        fontFamily: ADULTI_FONTS.heading,
-                        fontSize: 26,
-                        fontWeight: 700,
-                        color: ADULTI_COLORS.textPrimary,
-                        marginLeft: amber ? 16 : 0,
-                      }}
-                    >
-                      {amber ? "Critical Next Step" : `Roadmap Step ${i + 1}`}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: ADULTI_FONTS.body,
-                        fontSize: 18,
-                        color: ADULTI_COLORS.textSecondary,
-                        marginTop: 8,
-                        marginLeft: amber ? 16 : 0,
-                      }}
-                    >
-                      {amber
-                        ? "No more analysis paralysis."
-                        : "Actionable task with guided context."}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <OffthreadVideo
+            src={resolveAssetSrc(src)}
+            muted
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
         </PhoneMockup>
       </div>
-      {frame > 220 ? (
-        <div
-          style={{
-            position: "absolute",
-            top: 390,
-            padding: "14px 24px",
-            borderRadius: 999,
-            backgroundColor: "rgba(245, 158, 11, 0.16)",
-            color: ADULTI_COLORS.warning,
-            fontFamily: ADULTI_FONTS.heading,
-            fontSize: 34,
-            fontWeight: 800,
-            transform: `scale(${criticalPulse})`,
-          }}
-        >
-          Critical Next Step
-        </div>
-      ) : null}
+      <ClipWalkthroughText
+        cues={ROADMAP_CUES}
+        durationInFrames={SCENE_DURATION.scene4}
+      />
     </AbsoluteFill>
   );
 };
 
-const Scene5Guides: React.FC<{ label: string }> = ({ label }) => {
+export const Scene5Guides: React.FC<{ label: string }> = ({ label }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const tilesIn = cardEntrance(frame, fps, 0);
@@ -683,6 +662,52 @@ const Scene5Guides: React.FC<{ label: string }> = ({ label }) => {
           </div>
         ))}
       </div>
+    </AbsoluteFill>
+  );
+};
+
+const Scene5GuideClip: React.FC<{ src: string }> = ({ src }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const phoneIn = cardEntrance(frame, fps, 0);
+
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor: ADULTI_COLORS.background,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: 90,
+          fontFamily: ADULTI_FONTS.heading,
+          fontSize: CLIP_TITLE_FONT_SIZE,
+          fontWeight: 800,
+          color: ADULTI_COLORS.textPrimary,
+        }}
+      >
+        Guide
+      </div>
+      <div
+        style={{
+          transform: `translateY(${interpolate(phoneIn, [0, 1], [90, 0])}px) scale(${CLIP_PHONE_SCALE})`,
+        }}
+      >
+        <PhoneMockup>
+          <OffthreadVideo
+            src={resolveAssetSrc(src)}
+            muted
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </PhoneMockup>
+      </div>
+      <ClipWalkthroughText
+        cues={GUIDE_CUES}
+        durationInFrames={SCENE_DURATION.scene5}
+      />
     </AbsoluteFill>
   );
 };
@@ -932,51 +957,62 @@ export const MyComposition: React.FC<MyCompositionProps> = ({
         from={SCENE_START.scene1}
         durationInFrames={SCENE_DURATION.scene1}
       >
-        <Scene1KineticHook />
+        <SceneTransition durationInFrames={SCENE_DURATION.scene1}>
+          <Scene1KineticHook />
+        </SceneTransition>
       </Sequence>
       <Sequence
         from={SCENE_START.scene2}
         durationInFrames={SCENE_DURATION.scene2}
       >
-        <Scene2Reveal />
+        <SceneTransition durationInFrames={SCENE_DURATION.scene2}>
+          <Scene2Reveal />
+        </SceneTransition>
       </Sequence>
       <Sequence
         from={SCENE_START.scene3}
         durationInFrames={SCENE_DURATION.scene3}
+        premountFor={CLIP_SEQUENCE_PREMOUNT_FRAMES}
       >
-        <Scene3OnboardingFlow
-          label={demoSlots?.onboardingLabel ?? "Onboarding clip placeholder"}
-        />
+        <SceneTransition durationInFrames={SCENE_DURATION.scene3}>
+          <Scene3OnboardingFlow
+            src={demoSlots?.onboardingDashboardSrc ?? "/Onboard.mp4"}
+          />
+        </SceneTransition>
       </Sequence>
       <Sequence
         from={SCENE_START.scene4}
         durationInFrames={SCENE_DURATION.scene4}
+        premountFor={CLIP_SEQUENCE_PREMOUNT_FRAMES}
       >
-        <Scene4Roadmap
-          label={
-            demoSlots?.roadmapLabel ?? "Dashboard/Roadmap clip placeholder"
-          }
-        />
+        <SceneTransition durationInFrames={SCENE_DURATION.scene4}>
+          <Scene4Roadmap src={demoSlots?.roadmapSrc ?? "/Roadmap.mp4"} />
+        </SceneTransition>
       </Sequence>
       <Sequence
         from={SCENE_START.scene5}
         durationInFrames={SCENE_DURATION.scene5}
+        premountFor={CLIP_SEQUENCE_PREMOUNT_FRAMES}
       >
-        <Scene5Guides
-          label={demoSlots?.guideLabel ?? "Guide clip placeholder"}
-        />
+        <SceneTransition durationInFrames={SCENE_DURATION.scene5}>
+          <Scene5GuideClip src={demoSlots?.guideSrc ?? "/Guide.mp4"} />
+        </SceneTransition>
       </Sequence>
       <Sequence
         from={SCENE_START.scene6}
         durationInFrames={SCENE_DURATION.scene6}
       >
-        <Scene6SocialProof />
+        <SceneTransition durationInFrames={SCENE_DURATION.scene6}>
+          <Scene6SocialProof />
+        </SceneTransition>
       </Sequence>
       <Sequence
         from={SCENE_START.scene7}
         durationInFrames={SCENE_DURATION.scene7}
       >
-        <Scene7Outro />
+        <SceneTransition durationInFrames={SCENE_DURATION.scene7}>
+          <Scene7Outro />
+        </SceneTransition>
       </Sequence>
     </AbsoluteFill>
   );
