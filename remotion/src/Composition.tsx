@@ -134,31 +134,31 @@ type ScreenTextVoiceCue = {
 const SCREEN_TEXT_VOICEOVER_CUES: ScreenTextVoiceCue[] = [
   ...INTRO_CUES.map((cue, index) => ({
     from: SCENE_START.scene1 + cue.from,
-    src: `/voiceover-cues/intro-${String(index + 1).padStart(2, "0")}.wav`,
+    src: `/voiceover-cues/intro-${String(index + 1).padStart(2, "0")}.mp3`,
   })),
   ...REVEAL_CUES.map((cue, index) => ({
     from: SCENE_START.scene2 + cue.from,
-    src: `/voiceover-cues/reveal-${String(index + 1).padStart(2, "0")}.wav`,
+    src: `/voiceover-cues/reveal-${String(index + 1).padStart(2, "0")}.mp3`,
   })),
   ...ONBOARDING_CUES.map((cue, index) => ({
     from: SCENE_START.scene3 + cue.from,
-    src: `/voiceover-cues/onboarding-${String(index + 1).padStart(2, "0")}.wav`,
+    src: `/voiceover-cues/onboarding-${String(index + 1).padStart(2, "0")}.mp3`,
   })),
   ...ROADMAP_CUES.map((cue, index) => ({
     from: SCENE_START.scene4 + cue.from,
-    src: `/voiceover-cues/roadmap-${String(index + 1).padStart(2, "0")}.wav`,
+    src: `/voiceover-cues/roadmap-${String(index + 1).padStart(2, "0")}.mp3`,
   })),
   ...GUIDE_CUES.map((cue, index) => ({
     from: SCENE_START.scene5 + cue.from,
-    src: `/voiceover-cues/guide-${String(index + 1).padStart(2, "0")}.wav`,
+    src: `/voiceover-cues/guide-${String(index + 1).padStart(2, "0")}.mp3`,
   })),
   ...FEEDBACK_VOICEOVER_CUES.map((cue, index) => ({
     from: SCENE_START.scene6 + cue.from,
-    src: `/voiceover-cues/feedback-${String(index + 1).padStart(2, "0")}.wav`,
+    src: `/voiceover-cues/feedback-${String(index + 1).padStart(2, "0")}.mp3`,
   })),
   ...OUTRO_VOICEOVER_CUES.map((cue, index) => ({
     from: SCENE_START.scene7 + cue.from,
-    src: `/voiceover-cues/outro-${String(index + 1).padStart(2, "0")}.wav`,
+    src: `/voiceover-cues/outro-${String(index + 1).padStart(2, "0")}.mp3`,
   })),
 ];
 
