@@ -62,8 +62,9 @@ const CLIP_PHONE_SCALE = 1.26;
 const CLIP_TITLE_FONT_SIZE = 52;
 const CLIP_SEQUENCE_PREMOUNT_FRAMES = 60;
 const ONBOARDING_FIELDS_START_FRAME = 92;
-const ONBOARDING_INCOME_START_FRAME = 377;
-const ONBOARDING_DASHBOARD_REVEAL_FRAME = 473;
+const ONBOARDING_INCOME_START_FRAME = 374;
+const ONBOARDING_DASHBOARD_REVEAL_FRAME = 500;
+const ONBOARDING_READY_NEXT_MOVE_FRAME = 610;
 
 type NarrationCue = {
   from: number;
@@ -99,7 +100,7 @@ const ONBOARDING_CUES: NarrationCue[] = [
     from: ONBOARDING_DASHBOARD_REVEAL_FRAME,
     text: "Your dashboard adapts to your stage instantly.",
   },
-  { from: 560, text: "Now you are ready for the next move." },
+  { from: ONBOARDING_READY_NEXT_MOVE_FRAME, text: "Now you are ready for the next move." },
 ];
 
 const ROADMAP_CUES: NarrationCue[] = [
@@ -814,24 +815,24 @@ const Scene5GuideClip: React.FC<{ src: string }> = ({ src }) => {
 const Scene6SocialProof: React.FC = () => {
   const frame = useCurrentFrame();
   const comments = [
-    "Finally a plan that makes sense.",
-    "I actually know what to do this week.",
-    "Debt payoff feels possible now.",
-    "The checklist keeps me on track.",
-    "I love seeing the next steps clearly.",
-    "Way less overwhelmed about money.",
-    "My APR strategy finally clicked.",
-    "This made budgeting feel simple.",
-    "I stopped missing important deadlines.",
-    "The roadmap is super practical.",
-    "Best guide for post-grad finances.",
-    "I can explain my plan in 2 minutes.",
-    "It turned confusion into action.",
-    "My emergency fund is finally growing.",
-    "Wish I had this in freshman year.",
-    "I finally understand my credit score.",
-    "This gave me a real salary game plan.",
-    "Net worth tracking is way less scary now.",
+    "This is the first app that made my money plan feel clear.",
+    "I check this before payday now.",
+    "The steps are simple and actually doable.",
+    "I finally set up my emergency fund.",
+    "UI/UX feels super clean. I always know what to do next.",
+    "I like the roadmap, but I want more examples for each step.",
+    "This helped me stop guessing every month.",
+    "The guides are helpful, but a little more detail would be nice.",
+    "I was stressed about debt and this gave me a starting point.",
+    "I can explain my plan to a friend now.",
+    "Honestly a really good idea with lots of potential.",
+    "Love the character. More customization options would be great.",
+    "Polished style and flow. More theme options would be nice.",
+    "I like the reminders, but custom reminder times would help.",
+    "It made budgeting feel less intimidating during semester.",
+    "Wish I had this freshman year, no joke.",
+    "I tested this between classes and it was actually easy to use.",
+    "Good concept and strong start. Excited to see where it goes.",
   ];
   const slotX = [90, 420, 750];
   const slotY = [320, 570, 820, 1070, 1320, 1570];
@@ -871,13 +872,18 @@ const Scene6SocialProof: React.FC = () => {
             marginTop: 16,
           }}
         >
-          Tested by 50 students.
+          Tested by 50 users, improved upon continuously.
         </div>
       </div>
 
       {comments.map((comment, i) => {
         const col = i % 3;
         const row = Math.floor(i / 3);
+        const isBottomRow = row === slotY.length - 1;
+        const bubbleWidth = isBottomRow ? 236 : 248;
+        const bubbleHeight = isBottomRow ? 124 : 140;
+        const bubbleTextSize = isBottomRow ? 17 : 18;
+        const bubbleMetaSize = isBottomRow ? 15 : 16;
         const enter = interpolate(
           frame,
           [22 + i * fadeStagger, 22 + i * fadeStagger + fadeDuration],
@@ -897,8 +903,8 @@ const Scene6SocialProof: React.FC = () => {
               position: "absolute",
               left: x,
               top: y,
-              width: 250,
-              minHeight: 150,
+              width: bubbleWidth,
+              height: bubbleHeight,
               opacity: enter,
               transform: `translateY(${interpolate(enter, [0, 1], [32, 0])}px) rotate(${bubbleAngles[i]}deg)`,
             }}
@@ -907,9 +913,12 @@ const Scene6SocialProof: React.FC = () => {
               style={{
                 ...SHARED_STYLES.card,
                 borderRadius: 28,
-                padding: "20px 20px 18px 20px",
+                padding: "14px 14px 12px 14px",
                 position: "relative",
                 height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
               }}
             >
               <div
@@ -928,20 +937,27 @@ const Scene6SocialProof: React.FC = () => {
               <div
                 style={{
                   fontFamily: ADULTI_FONTS.body,
-                  fontSize: 27,
+                  fontSize: bubbleTextSize,
                   fontWeight: 650,
                   color: ADULTI_COLORS.textPrimary,
-                  lineHeight: 1.15,
+                  lineHeight: 1.25,
+                  display: "-webkit-box",
+                  WebkitLineClamp: isBottomRow ? 2 : 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  minHeight: 0,
+                  flexGrow: 1,
                 }}
               >
                 {comment}
               </div>
               <div
                 style={{
-                  marginTop: 10,
+                  marginTop: 6,
                   fontFamily: ADULTI_FONTS.body,
-                  fontSize: 20,
+                  fontSize: bubbleMetaSize,
                   color: ADULTI_COLORS.textSecondary,
+                  flexShrink: 0,
                 }}
               >
                 Beta Tester
