@@ -2,7 +2,7 @@ export const ADULTI_VIDEO = {
   width: 1080,
   height: 1920,
   fps: 30,
-  durationInFrames: 2142,
+  durationInFrames: 2202,
 };
 
 export const SCENE_CROSSFADE_FRAMES = 24;
@@ -16,7 +16,7 @@ export const SCENE_DURATION = {
   scene4: 300,
   scene5: 420,
   scene6: 300,
-  scene7: 150,
+  scene7: 210,
 };
 
 export const SCENE_START = {

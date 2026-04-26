@@ -123,7 +123,7 @@ const FEEDBACK_VOICEOVER_CUES: NarrationCue[] = [
 ];
 
 const OUTRO_VOICEOVER_CUES: NarrationCue[] = [
-  { from: 20, text: "Stop guessing. Start navigating." },
+  { from: 20, text: "Stop guessing. Start navigating. Get it on Google Play." },
 ];
 
 type ScreenTextVoiceCue = {
